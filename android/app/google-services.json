@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "908259482025",
+    "project_id": "compudecsi-870bd",
+    "storage_bucket": "compudecsi-870bd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908259482025:android:400b1f66656a1fda6c8cb8",
+        "android_client_info": {
+          "package_name": "com.example.compudecsi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCyWC2qzEXDTy5ZMyZZnUJ7KnBai0AEKM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
