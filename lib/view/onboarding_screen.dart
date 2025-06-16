@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gif/gif.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -39,7 +40,7 @@ class OnboardingScreen extends StatelessWidget {
 
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 15),
-                child: Image.asset('assets/undraw_amusement-park_j8fe.png'),
+                child: Image.asset('assets/coding_workshop.gif'),
               ),
 
               SizedBox(height: 50),
