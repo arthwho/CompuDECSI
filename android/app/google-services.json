@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "908259482025",
-    "project_id": "compudecsi-870bd",
-    "storage_bucket": "compudecsi-870bd.firebasestorage.app"
+    "project_number": "774811832081",
+    "project_id": "compudecsi-19777",
+    "storage_bucket": "compudecsi-19777.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:908259482025:android:400b1f66656a1fda6c8cb8",
+        "mobilesdk_app_id": "1:774811832081:android:f0029819a5628e20b1c6b0",
         "android_client_info": {
           "package_name": "com.example.compudecsi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "774811832081-aam909mj30742i9j532ou6oph0604a98.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.compudecsi",
+            "certificate_hash": "6ba028ae80dadae46b456a982f1c0ef88d15283b"
+          }
+        },
+        {
+          "client_id": "774811832081-cm35ehsin55lt8m2ruhv1ephbi89j1gh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCCyWC2qzEXDTy5ZMyZZnUJ7KnBai0AEKM"
+          "current_key": "AIzaSyDzek8qY6r69gf9EAdM_5f9my_J3ltR0-8"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "774811832081-cm35ehsin55lt8m2ruhv1ephbi89j1gh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
