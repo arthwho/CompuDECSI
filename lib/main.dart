@@ -1,3 +1,4 @@
+import 'package:compudecsi/admin/upload_event.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/pages/home.dart';
 import 'package:compudecsi/pages/signup.dart';
