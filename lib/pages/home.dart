@@ -24,20 +24,6 @@ class _HomeState extends State<Home> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.location_on_outlined),
-                Text(
-                  'ICEA, Campus João Monlevade',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
             Text(
               'Olá, João',
               style: TextStyle(
