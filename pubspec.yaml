@@ -30,7 +30,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  curved_navigation_bar:
   gif: ^2.3.0
   firebase_core: ^3.2.0
   firebase_auth: ^5.1.2

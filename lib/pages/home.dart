@@ -1,5 +1,47 @@
 import 'package:flutter/material.dart';
 
+enum CardInfo {
+  dataScience(
+    'Data Science',
+    Icons.analytics,
+    Color(0xff2354C7),
+    Color(0xffECEFFD),
+  ),
+  cryptography(
+    'Criptografia',
+    Icons.security,
+    Color(0xff806C2A),
+    Color(0xffFAEEDF),
+  ),
+  robotics('Robótica', Icons.smart_toy, Color(0xffA44D2A), Color(0xffFAEDE7)),
+  ai(
+    'Inteligência\n Artificial',
+    Icons.psychology,
+    Color(0xff417345),
+    Color(0xffE5F4E0),
+  ),
+  software('Software', Icons.code, Color(0xff2556C8), Color(0xffECEFFD)),
+  computing('Computação', Icons.computer, Color(0xff794C01), Color(0xffFAEEDF)),
+  electronics(
+    'Eletrônica',
+    Icons.electric_bolt,
+    Color(0xff2251C5),
+    Color(0xffECEFFD),
+  ),
+  telecom(
+    'Redes',
+    Icons.signal_cellular_alt,
+    Color(0xff201D1C),
+    Color(0xffE3DFD8),
+  );
+
+  const CardInfo(this.label, this.icon, this.color, this.backgroundColor);
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Color backgroundColor;
+}
+
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -12,7 +54,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.only(top: 50, left: 20),
+        padding: EdgeInsets.only(top: 50, left: 20, right: 20),
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -43,7 +85,6 @@ class _HomeState extends State<Home> {
             ),
             SizedBox(height: 20),
             Container(
-              margin: EdgeInsets.only(right: 20),
               padding: EdgeInsets.only(left: 20),
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
@@ -60,130 +101,43 @@ class _HomeState extends State<Home> {
               ),
             ),
             SizedBox(height: 20),
-            Container(
-              height: 100,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(bottom: 5),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 150),
+              child: CarouselView.weighted(
+                flexWeights: const <int>[7, 6, 7],
+                consumeMaxWeight: false,
+                children: CardInfo.values.map((CardInfo info) {
+                  return Container(
                     child: Material(
                       elevation: 3.0,
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        width: 100,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: info.backgroundColor,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(15),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.agriculture_sharp, size: 40),
+                            Icon(info.icon, color: info.color, size: 32.0),
+                            SizedBox(height: 8),
                             Text(
-                              'Agricultura',
+                              info.label,
                               style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: info.color,
                               ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.clip,
+                              softWrap: false,
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(width: 20),
-                  Container(
-                    margin: EdgeInsets.only(bottom: 5),
-                    child: Material(
-                      elevation: 3.0,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        width: 110,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.developer_board, size: 40),
-                            Text(
-                              'Computação',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 20),
-                  Container(
-                    margin: EdgeInsets.only(bottom: 5),
-                    child: Material(
-                      elevation: 3.0,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.signal_wifi_4_bar_lock_outlined,
-                              size: 40,
-                            ),
-                            Text(
-                              'Redes',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 20),
-                  Container(
-                    margin: EdgeInsets.only(bottom: 5),
-                    child: Material(
-                      elevation: 3.0,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        width: 110,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.theater_comedy_sharp, size: 40),
-                            Text(
-                              'Compliance',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
             ),
             SizedBox(height: 15),
@@ -198,73 +152,8 @@ class _HomeState extends State<Home> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 20),
-                  child: Text(
-                    'Ver tudo',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              margin: EdgeInsets.only(right: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      'assets/icea.png',
-                      height: 200,
-                      width: MediaQuery.of(context).size.width,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(top: 10, left: 10),
-                    width: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '19\nAug',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'O Impacto da IA no Mercado de Trabalho',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 20),
                 Text(
-                  'Anfiteatro do ICEA',
+                  'Ver tudo',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 16,
@@ -272,6 +161,66 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ],
+            ),
+            SizedBox(height: 20),
+            Center(
+              child: Card(
+                clipBehavior: Clip.antiAlias, // Clip image to card shape
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Image.asset(
+                      'assets/icea.png',
+                      height: 200,
+                      width:
+                          double.infinity, // Image takes full width of the card
+                      fit:
+                          BoxFit.cover, // Cover the area, cropping if necessary
+                    ),
+                    const ListTile(
+                      title: const Text(
+                        'O Impacto da IA no Mercado de Trabalho',
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              const Icon(Icons.calendar_today, size: 18),
+                              const SizedBox(width: 8),
+                              const Flexible(
+                                child: Text('23 de Agosto de 2025'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4), // Small vertical spacing
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              const Icon(Icons.location_on, size: 18),
+                              const SizedBox(width: 8),
+                              const Flexible(child: Text('Bloco B, ICEA')),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed:
+                              () {}, // Empty callback as per instructions
+                          child: const Text('VER MAIS'),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

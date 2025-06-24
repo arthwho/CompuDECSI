@@ -3,7 +3,6 @@ import 'package:compudecsi/pages/booking.dart';
 import 'package:compudecsi/pages/home.dart';
 import 'package:compudecsi/pages/profile.dart';
 import 'package:compudecsi/pages/messages.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -33,21 +32,21 @@ class _BottomNavState extends State<BottomNav> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: CurvedNavigationBar(
-        height: 65,
-        backgroundColor: Colors.white,
-        color: Colors.black,
-        animationDuration: Duration(milliseconds: 500),
-        onTap: (int index) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: currentIndex,
+        onDestinationSelected: (int index) {
           setState(() {
             currentIndex = index;
           });
         },
-        items: [
-          Icon(Icons.home, color: Colors.white),
-          Icon(Icons.book, color: Colors.white),
-          Icon(Icons.message_rounded, color: Colors.white),
-          Icon(Icons.person, color: Colors.white),
+        destinations: [
+          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.book), label: 'Booking'),
+          NavigationDestination(
+            icon: Icon(Icons.message_rounded),
+            label: 'Messages',
+          ),
+          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
       body: pages[currentIndex],
