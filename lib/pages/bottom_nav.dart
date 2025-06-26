@@ -40,13 +40,13 @@ class _BottomNavState extends State<BottomNav> {
           });
         },
         destinations: [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.book), label: 'Booking'),
+          NavigationDestination(icon: Icon(Icons.home), label: 'Início'),
+          NavigationDestination(icon: Icon(Icons.book), label: 'Checkins'),
           NavigationDestination(
             icon: Icon(Icons.message_rounded),
-            label: 'Messages',
+            label: 'Mensagens',
           ),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+          NavigationDestination(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
       body: pages[currentIndex],

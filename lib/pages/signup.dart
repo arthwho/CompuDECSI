@@ -1,4 +1,5 @@
 import 'package:compudecsi/services/auth.dart';
+import 'package:compudecsi/utils/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:gif/gif.dart';
 
@@ -15,11 +16,11 @@ class _SignUpState extends State<SignUp> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(AppSpacing.viewPortSide),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 30),
+            SizedBox(height: AppSpacing.lg),
             Image.asset(
               'assets/Onboarding.gif',
               width: 350,
@@ -46,7 +47,7 @@ class _SignUpState extends State<SignUp> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.redAccent,
+                color: AppColors.primary,
               ),
             ),
             SizedBox(height: 20),
@@ -55,7 +56,7 @@ class _SignUpState extends State<SignUp> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 50),
+            SizedBox(height: AppSpacing.viewPortTop),
             GestureDetector(
               onTap: () {
                 AuthMethods().signInWithGoogle(context);
@@ -63,7 +64,7 @@ class _SignUpState extends State<SignUp> {
               child: Container(
                 padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 174, 23, 12),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Row(
@@ -78,14 +79,14 @@ class _SignUpState extends State<SignUp> {
                         return Container(
                           height: 30,
                           width: 30,
-                          color: Colors.red[300],
+                          color: AppColors.primary,
                           child: Center(
                             child: Text('Error loading Google image: $error'),
                           ),
                         );
                       },
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(width: AppSpacing.sm),
                     Text(
                       'Entrar com o Google',
                       textAlign: TextAlign.center,
