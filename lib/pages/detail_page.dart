@@ -1,7 +1,17 @@
+import 'package:compudecsi/utils/variables.dart';
 import 'package:flutter/material.dart';
 
 class DetailsPage extends StatefulWidget {
-  const DetailsPage({super.key});
+  String image, name, local, date, time, description, speaker;
+  DetailsPage({
+    required this.image,
+    required this.name,
+    required this.local,
+    required this.date,
+    required this.time,
+    required this.description,
+    required this.speaker,
+  });
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -54,7 +64,7 @@ class _DetailsPageState extends State<DetailsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'O Impacto da IA no Mercado de Trabalho',
+                              widget.name!,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -70,7 +80,7 @@ class _DetailsPageState extends State<DetailsPage> {
                                 ),
                                 SizedBox(width: 5),
                                 Text(
-                                  '19/06/2025',
+                                  widget.date!,
                                   style: TextStyle(color: Colors.white),
                                 ),
                               ],
@@ -81,7 +91,7 @@ class _DetailsPageState extends State<DetailsPage> {
                                 Icon(Icons.location_on, color: Colors.white),
                                 SizedBox(width: 5),
                                 Text(
-                                  'Anfiteatro do ICEA',
+                                  widget.local!,
                                   style: TextStyle(color: Colors.white),
                                 ),
                               ],
@@ -106,10 +116,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
-                  Text(
-                    'A IA está transformando o mercado de trabalho, mas qual é o impacto real? Nesta palestra, vamos explorar como a IA está mudando a forma como as empresas funcionam e como isso afeta os profissionais de TI.',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  Text(widget.description!, style: TextStyle(fontSize: 16)),
                   SizedBox(height: 20),
                   Row(
                     children: [
@@ -121,7 +128,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        'João da Silva',
+                        widget.speaker!,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -141,7 +148,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        '16h',
+                        widget.time!,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -151,9 +158,9 @@ class _DetailsPageState extends State<DetailsPage> {
                     ],
                   ),
                   SizedBox(height: 30),
-                  Container(
-                    width: double.infinity,
-                    child: ElevatedButton(
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: FilledButton(
                       onPressed: () {
                         // TODO: Implement checkin functionality
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -163,20 +170,12 @@ class _DetailsPageState extends State<DetailsPage> {
                           ),
                         );
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
                       ),
                       child: Text(
                         'Fazer checkin',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ),

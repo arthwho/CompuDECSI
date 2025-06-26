@@ -1,3 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:compudecsi/pages/detail_page.dart';
+import 'package:compudecsi/services/database.dart';
+import 'package:compudecsi/utils/variables.dart';
 import 'package:flutter/material.dart';
 
 enum CardInfo {
@@ -50,179 +54,270 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  Stream? eventStream;
+
+  onTheLoad() async {
+    eventStream = await DatabaseMethods().getAllEvents();
+    setState(() {});
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-        width: MediaQuery.of(context).size.width,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xffe3e6ff), Color(0xfff1f3ff), Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Olá, João',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Palestras do CompuDECSI',
-              style: TextStyle(
-                color: Color(0xff6351ec),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 20),
-            Container(
-              padding: EdgeInsets.only(left: 20),
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  suffixIcon: Icon(Icons.search_outlined),
-                  hintText: 'Pesquisar palestras',
-                  hintStyle: TextStyle(color: Colors.grey),
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 150),
-              child: CarouselView.weighted(
-                flexWeights: const <int>[7, 6, 7],
-                consumeMaxWeight: false,
-                children: CardInfo.values.map((CardInfo info) {
-                  return Container(
-                    child: Material(
-                      elevation: 3.0,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: info.backgroundColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: EdgeInsets.all(15),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(info.icon, color: info.color, size: 32.0),
-                            SizedBox(height: 8),
-                            Text(
-                              info.label,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: info.color,
-                              ),
-                              textAlign: TextAlign.center,
-                              overflow: TextOverflow.clip,
-                              softWrap: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Próximas palestras',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Ver tudo',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: Card(
-                clipBehavior: Clip.antiAlias, // Clip image to card shape
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Image.asset(
-                      'assets/icea.png',
-                      height: 200,
-                      width:
-                          double.infinity, // Image takes full width of the card
-                      fit:
-                          BoxFit.cover, // Cover the area, cropping if necessary
-                    ),
-                    const ListTile(
-                      title: const Text(
-                        'O Impacto da IA no Mercado de Trabalho',
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+  void initState() {
+    onTheLoad();
+    super.initState();
+  }
+
+  Widget allEvents() {
+    return StreamBuilder(
+      stream: eventStream,
+      builder: (context, AsyncSnapshot snapshot) {
+        return snapshot.hasData
+            ? ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: snapshot.data.docs.length,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot ds = snapshot.data.docs[index];
+                  return Center(
+                    child: Card(
+                      clipBehavior: Clip.antiAlias, // Clip image to card shape
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              const Icon(Icons.calendar_today, size: 18),
-                              const SizedBox(width: 8),
-                              const Flexible(
-                                child: Text('23 de Agosto de 2025'),
-                              ),
-                            ],
+                          Image.asset(
+                            'assets/icea.png',
+                            height: 200,
+                            width: double
+                                .infinity, // Image takes full width of the card
+                            fit: BoxFit
+                                .cover, // Cover the area, cropping if necessary
                           ),
-                          const SizedBox(height: 4), // Small vertical spacing
+                          ListTile(
+                            title: Text(ds["name"] ?? "Sem título"),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    const Icon(Icons.calendar_today, size: 18),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        ds["date"] ?? "Data não informada",
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 4,
+                                ), // Small vertical spacing
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    const Icon(Icons.location_on, size: 18),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        ds["local"] ?? "Local não informado",
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
-                              const Icon(Icons.location_on, size: 18),
                               const SizedBox(width: 8),
-                              const Flexible(child: Text('Bloco B, ICEA')),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DetailsPage(
+                                        image: ds["image"],
+                                        name: ds["name"],
+                                        local: ds["local"],
+                                        date: ds["date"],
+                                        time: ds["time"],
+                                        description: ds["description"],
+                                        speaker: ds["speaker"],
+                                      ),
+                                    ),
+                                  );
+                                }, // Empty callback as per instructions
+                                child: const Text('VER MAIS'),
+                              ),
+                              const SizedBox(width: 8),
                             ],
                           ),
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        const SizedBox(width: 8),
-                        TextButton(
-                          onPressed:
-                              () {}, // Empty callback as per instructions
-                          child: const Text('VER MAIS'),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                    ),
-                  ],
+                  );
+                },
+              )
+            : Container();
+      },
+    );
+  }
+
+  bool isDark = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.only(
+            top: AppSpacing.viewPortTop,
+            left: AppSpacing.viewPortSide,
+            right: AppSpacing.viewPortSide,
+            bottom: AppSpacing.viewPortBottom,
+          ),
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.white, Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Olá, João',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: AppSpacing.sm),
+              Text(
+                'Palestras do CompuDECSI',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: AppSpacing.md),
+              SearchAnchor(
+                builder: (BuildContext context, SearchController controller) {
+                  return SearchBar(
+                    backgroundColor: MaterialStatePropertyAll(Colors.white),
+                    shape: MaterialStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: AppBorderRadius.md,
+                        side: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    elevation: MaterialStatePropertyAll(0),
+                    hintText: 'Pesquisar palestras',
+
+                    controller: controller,
+                    padding: const WidgetStatePropertyAll<EdgeInsets>(
+                      EdgeInsets.symmetric(horizontal: 16.0),
+                    ),
+                    onTap: () {
+                      controller.openView();
+                    },
+                    onChanged: (_) {
+                      controller.openView();
+                    },
+                    leading: const Icon(Icons.search),
+                  );
+                },
+                suggestionsBuilder:
+                    (BuildContext context, SearchController controller) {
+                      return List<ListTile>.generate(5, (int index) {
+                        final String item = 'item $index';
+                        return ListTile(
+                          title: Text(item),
+                          onTap: () {
+                            setState(() {
+                              controller.closeView(item);
+                            });
+                          },
+                        );
+                      });
+                    },
+              ),
+              SizedBox(height: AppSpacing.md),
+              Text(
+                'Categorias',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: AppSpacing.sm),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 150),
+                child: CarouselView.weighted(
+                  flexWeights: const <int>[7, 7, 7],
+                  consumeMaxWeight: false,
+                  children: CardInfo.values.map((CardInfo info) {
+                    return Container(
+                      child: Material(
+                        elevation: 3.0,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: info.backgroundColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: EdgeInsets.all(15),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(info.icon, color: info.color, size: 32.0),
+                              SizedBox(height: 8),
+                              Text(
+                                info.label,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: info.color,
+                                ),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.clip,
+                                softWrap: false,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              SizedBox(height: AppSpacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Próximas palestras',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppSpacing.md),
+              allEvents(),
+            ],
+          ),
         ),
       ),
     );

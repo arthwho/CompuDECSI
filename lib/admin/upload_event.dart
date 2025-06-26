@@ -1,6 +1,11 @@
+import 'package:compudecsi/services/database.dart';
+import 'package:compudecsi/utils/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:random_string/random_string.dart';
+import 'package:intl/intl.dart';
 
 class UploadEvent extends StatefulWidget {
   const UploadEvent({super.key});
@@ -34,6 +39,40 @@ class _UploadEventState extends State<UploadEvent> {
     setState(() {});
   }
 
+  DateTime selectedDate = DateTime.now();
+  TimeOfDay selectedTime = TimeOfDay(hour: 10, minute: 00);
+  Future<void> _pickDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2025),
+      lastDate: DateTime(2026),
+    );
+    if (pickedDate != null && pickedDate != selectedDate) {
+      setState(() {
+        selectedDate = pickedDate;
+      });
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (pickedTime != null && pickedTime != selectedTime) {
+      setState(() {
+        selectedTime = pickedTime;
+      });
+    }
+  }
+
+  String formatTimeOfDay(TimeOfDay timeOfDay) {
+    final hour = timeOfDay.hour.toString().padLeft(2, '0');
+    final minute = timeOfDay.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,6 +87,7 @@ class _UploadEventState extends State<UploadEvent> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black, size: 30),
           onPressed: () {
@@ -62,7 +102,17 @@ class _UploadEventState extends State<UploadEvent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               selectedImage != null
-                  ? Image.file(selectedImage!, height: 90, width: 90)
+                  ? Center(
+                      child: ClipRRect(
+                        borderRadius: AppBorderRadius.md,
+                        child: Image.file(
+                          selectedImage!,
+                          height: 90,
+                          width: 90,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    )
                   : Center(
                       child: GestureDetector(
                         onTap: () {
@@ -158,6 +208,36 @@ class _UploadEventState extends State<UploadEvent> {
               ),
               SizedBox(height: 20),
               Text(
+                'Event Date and Time',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      _pickDate();
+                    },
+                    child: Icon(Icons.calendar_month, color: Colors.black),
+                  ),
+                  SizedBox(width: 10),
+                  Text(DateFormat('dd/MM/yyyy').format(selectedDate!)),
+                  SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () {
+                      _pickTime();
+                    },
+                    child: Icon(Icons.access_time, color: Colors.black),
+                  ),
+                  SizedBox(width: 10),
+                  Text(formatTimeOfDay(selectedTime)),
+                ],
+              ),
+              SizedBox(height: 20),
+              Text(
                 'Event Description',
                 style: TextStyle(
                   color: Colors.black,
@@ -235,10 +315,50 @@ class _UploadEventState extends State<UploadEvent> {
               SizedBox(height: 20),
               SizedBox(
                 width: MediaQuery.of(context).size.width,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
+                child: FilledButton.tonal(
+                  onPressed: () async {
+                    //String addId = randomAlphaNumeric(10);
+                    //Reference firebaseStorageRef = FirebaseStorage.instance
+                    //    .ref()
+                    //    .child("blogImages")
+                    //    .child(addId);
+
+                    //final UploadTask task = firebaseStorageRef.putFile(
+                    //  selectedImage!,
+                    //);
+                    //var downloadUrl = await (await task).ref.getDownloadURL();
+                    String id = randomAlphaNumeric(10);
+                    Map<String, dynamic> uploadEvent = {
+                      "image": "", //ou usar o downloadUrl
+                      "name": nameController.text,
+                      "category": value,
+                      "description": descriptionController.text,
+                      "speaker": speakerController.text,
+                      "local": localController.text,
+                      "date": DateFormat('dd/MM/yyyy').format(selectedDate!),
+                      "time": formatTimeOfDay(selectedTime),
+                    };
+                    await DatabaseMethods().addEvent(uploadEvent, id).then((
+                      value,
+                    ) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.green,
+                          content: Text("Palestra criada com sucesso!"),
+                        ),
+                      );
+                      setState(() {
+                        nameController.clear();
+                        descriptionController.clear();
+                        speakerController.clear();
+                        localController.clear();
+                        selectedImage = null;
+                        value = null;
+                      });
+                    });
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
                   ),
                   child: Text(
                     'Upload Event',

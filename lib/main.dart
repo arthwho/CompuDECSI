@@ -1,6 +1,8 @@
 import 'package:compudecsi/admin/upload_event.dart';
+import 'package:compudecsi/pages/bottom_nav.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/pages/home.dart';
+import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/pages/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,12 +20,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'CompuDECSI',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
       ),
-      home: SignUp(),
+      home: BottomNav(),
     );
   }
 }
