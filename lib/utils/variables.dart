@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static Color primary = Color(0xffac213b);
+  static Color primary = Color(0xffAB203A);
+  static Color btnPrimary = Color(0xffAB203A);
   static Color black = Color(0xff262628);
   static Color white = Color(0xffFFFFFF);
   static Color blue = Color(0xff274560);
@@ -26,9 +27,16 @@ class AppSpacing {
   static double viewPortBottom = 20;
 }
 
+class AppSize {
+  static double sm = 8;
+  static double md = 16;
+  static double lg = 24;
+  static double xl = 32;
+  static double xxl = 64;
+}
+
 class AppBorderRadius {
-  static BorderRadius xsm = BorderRadius.circular(8);
-  static BorderRadius sm = BorderRadius.circular(12);
+  static BorderRadius sm = BorderRadius.circular(8);
   static BorderRadius md = BorderRadius.circular(16);
   static BorderRadius lg = BorderRadius.circular(24);
   static BorderRadius xl = BorderRadius.circular(32);
@@ -36,14 +44,46 @@ class AppBorderRadius {
 }
 
 class AppTextStyle {
+  static TextStyle title = TextStyle(
+    color: Colors.black,
+    fontSize: AppSize.xl,
+    fontWeight: FontWeight.bold,
+  );
+
   static TextStyle heading1 = TextStyle(
-    fontSize: 24,
+    fontSize: AppSize.lg,
+    fontWeight: FontWeight.bold,
+    color: AppColors.black,
+  );
+  static TextStyle subheading1 = TextStyle(
+    fontSize: AppSize.md,
     fontWeight: FontWeight.w700,
     color: AppColors.black,
   );
+
   static TextStyle heading2 = TextStyle(
-    fontSize: 20,
+    fontSize: AppSize.md,
     fontWeight: FontWeight.w700,
     color: AppColors.black,
+  );
+
+  static TextStyle body = TextStyle(
+    fontSize: AppSize.md,
+    fontWeight: FontWeight.w400,
+    color: AppColors.black,
+  );
+  static TextStyle bodyBold = TextStyle(
+    fontSize: AppSize.md,
+    fontWeight: FontWeight.bold,
+    color: AppColors.black,
+  );
+}
+
+class AppButtonStyle {
+  static ButtonStyle btnPrimary = FilledButton.styleFrom(
+    backgroundColor: AppColors.btnPrimary,
+    foregroundColor: AppColors.white,
+    textStyle: AppTextStyle.body,
+    shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.md),
   );
 }

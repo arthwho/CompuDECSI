@@ -75,6 +75,7 @@ class _HomeState extends State<Home> {
             ? ListView.builder(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemCount: snapshot.data.docs.length,
                 itemBuilder: (context, index) {
                   DocumentSnapshot ds = snapshot.data.docs[index];
