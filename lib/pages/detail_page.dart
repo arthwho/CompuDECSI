@@ -1,4 +1,5 @@
 import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
 
 class DetailsPage extends StatefulWidget {
@@ -36,78 +37,46 @@ class _DetailsPageState extends State<DetailsPage> {
         ),
       ),
       body: Container(
+        margin: EdgeInsets.only(
+          left: AppSpacing.viewPortSide,
+          right: AppSpacing.viewPortSide,
+        ),
         child: Column(
           children: [
-            Stack(
+            Text(widget.name!, style: AppTextStyle.title),
+            SizedBox(height: AppSpacing.md),
+            Row(
               children: [
-                Image.asset(
-                  'assets/icea.png',
-                  width: MediaQuery.of(context).size.width,
-                  fit: BoxFit.cover,
-                  height: MediaQuery.of(context).size.height / 2.5,
+                Row(
+                  children: [
+                    Icon(Icons.calendar_month_rounded, color: Colors.black),
+                    SizedBox(width: AppSpacing.sm),
+                    Text(widget.date!, style: AppTextStyle.body),
+                  ],
                 ),
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height / 2.5,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(20),
-                        width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          color: Colors.black45,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.name!,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 15),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_month_rounded,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  widget.date!,
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 5),
-                            Row(
-                              children: [
-                                Icon(Icons.location_on, color: Colors.white),
-                                SizedBox(width: 5),
-                                Text(
-                                  widget.local!,
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                SizedBox(width: AppSpacing.lg),
+                Row(
+                  children: [
+                    Icon(Icons.alarm_on, color: Colors.black),
+                    SizedBox(width: AppSpacing.sm),
+                    Text(widget.time!, style: AppTextStyle.body),
+                  ],
                 ),
               ],
             ),
+            SizedBox(height: AppSpacing.lg),
+            ClipRRect(
+              borderRadius: AppBorderRadius.md,
+              child: Image.asset(
+                'assets/icea.png',
+                width: MediaQuery.of(context).size.width,
+                fit: BoxFit.cover,
+                height: 200,
+              ),
+            ),
+            SizedBox(height: AppSpacing.lg),
             Container(
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height / 2,
-              padding: EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -140,15 +109,15 @@ class _DetailsPageState extends State<DetailsPage> {
                   SizedBox(height: 5),
                   Row(
                     children: [
-                      Icon(Icons.alarm, color: Colors.black),
+                      Icon(Icons.location_on, color: Colors.black),
                       SizedBox(width: 5),
                       Text(
-                        'Horário:',
+                        'Local:',
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                       SizedBox(width: 5),
                       Text(
-                        widget.time!,
+                        widget.local!,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -160,7 +129,8 @@ class _DetailsPageState extends State<DetailsPage> {
                   SizedBox(height: 30),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
-                    child: FilledButton(
+                    child: PrimaryButton(
+                      text: 'Fazer checkin',
                       onPressed: () {
                         // TODO: Implement checkin functionality
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -170,13 +140,6 @@ class _DetailsPageState extends State<DetailsPage> {
                           ),
                         );
                       },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                      ),
-                      child: Text(
-                        'Fazer checkin',
-                        style: TextStyle(color: Colors.white),
-                      ),
                     ),
                   ),
                 ],
