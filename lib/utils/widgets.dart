@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:compudecsi/utils/variables.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
@@ -148,6 +148,88 @@ class QuaternaryButton extends StatelessWidget {
                 children: [icon!, SizedBox(width: 8), Text(text)],
               )
             : Text(text),
+      ),
+    );
+  }
+}
+
+class PixelArtButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  final String text;
+
+  const PixelArtButton({Key? key, required this.onPressed, required this.text})
+    : super(key: key);
+
+  @override
+  _PixelArtButtonState createState() => _PixelArtButtonState();
+}
+
+class _PixelArtButtonState extends State<PixelArtButton> {
+  bool _isPressed = false;
+
+  void _onTapDown(TapDownDetails details) {
+    setState(() {
+      _isPressed = true;
+    });
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      _isPressed = false;
+    });
+    widget.onPressed();
+  }
+
+  void _onTapCancel() {
+    setState(() {
+      _isPressed = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // The 3D effect is created with a custom border
+    // Unpressed state: Black on top/left, Dark Grey on bottom/right
+    // Pressed state: Inverted colors and slightly shifted text
+    final Border border = Border(
+      top: BorderSide(
+        color: _isPressed ? const Color(0xFF808080) : Colors.black,
+        width: 4.0,
+      ),
+      left: BorderSide(
+        color: _isPressed ? const Color(0xFF808080) : Colors.black,
+        width: 4.0,
+      ),
+      right: BorderSide(
+        color: _isPressed ? Colors.black : const Color(0xFF808080),
+        width: 4.0,
+      ),
+      bottom: BorderSide(
+        color: _isPressed ? Colors.black : const Color(0xFF808080),
+        width: 4.0,
+      ),
+    );
+
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: Container(
+        padding: EdgeInsets.only(
+          // Shift text down and right when pressed
+          top: _isPressed ? 10.0 : 8.0,
+          left: 8.0,
+          right: 8.0,
+          bottom: _isPressed ? 8.0 : 10.0,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD3D3D3), // Light grey background
+          border: border,
+        ),
+        child: Text(
+          widget.text,
+          style: GoogleFonts.pressStart2p(fontSize: 16, color: Colors.black),
+        ),
       ),
     );
   }
