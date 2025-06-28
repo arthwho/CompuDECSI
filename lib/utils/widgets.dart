@@ -234,3 +234,63 @@ class _PixelArtButtonState extends State<PixelArtButton> {
     );
   }
 }
+
+class GoogleSignInButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final String text;
+  final double? width;
+  final double? height;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final double? fontSize;
+
+  const GoogleSignInButton({
+    super.key,
+    this.onPressed,
+    this.text = 'Entrar com o Google',
+    this.width,
+    this.height = 48,
+    this.backgroundColor,
+    this.textColor,
+    this.fontSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width ?? double.infinity,
+      height: height,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: backgroundColor ?? AppColors.primary,
+          foregroundColor: textColor ?? Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/google.png',
+              width: 24,
+              height: 24,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.g_mobiledata, size: 24);
+              },
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text.toUpperCase(),
+                style: TextStyle(
+                  fontSize: fontSize ?? 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
