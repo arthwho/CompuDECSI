@@ -3,9 +3,10 @@ import 'package:compudecsi/pages/bottom_nav.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/pages/home.dart';
 import 'package:compudecsi/utils/variables.dart';
-import 'package:compudecsi/pages/signup.dart';
+import 'package:compudecsi/pages/onboarding_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +25,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+        textTheme: GoogleFonts.interTextTheme(),
       ),
-      home: SignUp(),
+      home: Onboarding(),
     );
   }
 }

@@ -1,4 +1,3 @@
-import 'package:compudecsi/services/auth.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
@@ -95,50 +94,11 @@ class _SignUpState extends State<SignUp> {
                     height: 100,
                     fit: BoxFit.contain,
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      AuthMethods().signInWithGoogle(context);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: AppBorderRadius.xxl,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/google.png',
-                            height: 32,
-                            width: 32,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                height: 30,
-                                width: 30,
-                                color: AppColors.primary,
-                                child: Center(
-                                  child: Text(
-                                    'Error loading Google image: $error',
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(width: AppSpacing.sm),
-                          Text(
-                            'Entrar com o Google',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: AppSize.lg,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  // Google Sign-In button removed - now handled in Onboarding
+                  SizedBox(height: AppSpacing.lg),
+                  Text(
+                    'Use a tela de onboarding para fazer login',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                 ],
               ),
