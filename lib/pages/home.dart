@@ -261,7 +261,8 @@ class _HomeState extends State<Home> {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 150),
                 child: CarouselView.weighted(
-                  flexWeights: const <int>[7, 7, 7],
+                  flexWeights: [1, 1, 1],
+                  shrinkExtent: 300,
                   consumeMaxWeight: false,
                   children: CardInfo.values.map((CardInfo info) {
                     return Container(
