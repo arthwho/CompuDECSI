@@ -18,4 +18,18 @@ class DatabaseMethods {
   Future<Stream<QuerySnapshot>> getAllEvents() async {
     return await FirebaseFirestore.instance.collection("events").snapshots();
   }
+
+  Future addUserBooking(Map<String, dynamic> userInfoMap, String id) async {
+    return await FirebaseFirestore.instance
+        .collection("users")
+        .doc(id)
+        .collection("bookings")
+        .add(userInfoMap);
+  }
+
+  Future addAdminBooking(Map<String, dynamic> userInfoMap) async {
+    return await FirebaseFirestore.instance
+        .collection("lectures")
+        .add(userInfoMap);
+  }
 }

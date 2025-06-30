@@ -1,3 +1,5 @@
+import 'package:compudecsi/services/database.dart';
+import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,21 @@ class DetailsPage extends StatefulWidget {
 }
 
 class _DetailsPageState extends State<DetailsPage> {
+  String? id, name, image;
+
+  @override
+  void initState() {
+    super.initState();
+    ontheload();
+  }
+
+  ontheload() async {
+    id = await SharedpreferenceHelper().getUserId();
+    name = await SharedpreferenceHelper().getUserName();
+    image = await SharedpreferenceHelper().getUserImage();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,13 +149,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     child: PrimaryButton(
                       text: 'Fazer checkin',
                       onPressed: () {
-                        // TODO: Implement checkin functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Checkin realizado com sucesso!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        makeBooking();
                       },
                     ),
                   ),
@@ -149,5 +160,35 @@ class _DetailsPageState extends State<DetailsPage> {
         ),
       ),
     );
+  }
+
+  Future<void> makeBooking() async {
+    try {
+      Map<String, dynamic> bookingDetail = {
+        "name": name,
+        "image": image,
+        "date": widget.date,
+        "time": widget.time,
+        "lectureName": widget.name,
+        "lectureImage": widget.image,
+        "Date": widget.date,
+        "Time": widget.time,
+        "Speaker": widget.speaker,
+        "Location": widget.local,
+      };
+      await DatabaseMethods().addUserBooking(bookingDetail, id!).then((
+        value,
+      ) async {
+        await DatabaseMethods().addAdminBooking(bookingDetail);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Checkin realizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 }

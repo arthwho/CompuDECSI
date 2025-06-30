@@ -1,5 +1,6 @@
 import 'package:compudecsi/pages/bottom_nav.dart';
 import 'package:compudecsi/services/database.dart';
+import 'package:compudecsi/services/shared_pref.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -50,6 +51,10 @@ class AuthMethods {
 
       UserCredential result = await auth.signInWithCredential(credential);
       User? userDetails = result.user;
+      await SharedpreferenceHelper().saveUserId(userDetails!.uid);
+      await SharedpreferenceHelper().saveUserName(userDetails.displayName!);
+      await SharedpreferenceHelper().saveUserEmail(userDetails.email!);
+      await SharedpreferenceHelper().saveUserImage(userDetails.photoURL!);
 
       if (result.user != null) {
         Map<String, dynamic> userInfoMap = {
