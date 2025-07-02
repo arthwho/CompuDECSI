@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         textTheme: GoogleFonts.interTextTheme(),
       ),
-      home: Onboarding(),
+      home: BottomNav(),
     );
   }
 }

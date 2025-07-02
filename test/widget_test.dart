@@ -11,20 +11,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:compudecsi/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the app starts with the onboarding page
+    expect(find.byType(MaterialApp), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('App title test', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the app has the correct title
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.title, equals('CompuDECSI'));
+  });
+
+  testWidgets('Debug banner is disabled', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(const MyApp());
+
+    // Verify that debug banner is disabled
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.debugShowCheckedModeBanner, isFalse);
   });
 }

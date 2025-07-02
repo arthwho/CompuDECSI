@@ -33,6 +33,10 @@ class _BottomNavState extends State<BottomNav> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: NavigationBar(
+        labelTextStyle: WidgetStatePropertyAll(
+          TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
         selectedIndex: currentIndex,
         onDestinationSelected: (int index) {
           setState(() {
@@ -40,12 +44,9 @@ class _BottomNavState extends State<BottomNav> {
           });
         },
         destinations: [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Início'),
-          NavigationDestination(icon: Icon(Icons.book), label: 'Checkins'),
-          NavigationDestination(
-            icon: Icon(Icons.message_rounded),
-            label: 'Mensagens',
-          ),
+          NavigationDestination(icon: Icon(Icons.home_filled), label: 'Início'),
+          NavigationDestination(icon: Icon(Icons.bookmark), label: 'Palestras'),
+
           NavigationDestination(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
