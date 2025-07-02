@@ -19,6 +19,35 @@ class DatabaseMethods {
     return await FirebaseFirestore.instance.collection("events").snapshots();
   }
 
+  Future<DocumentSnapshot?> getEventByCode(String code) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection("events")
+          .where("checkinCode", isEqualTo: code)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first;
+      }
+      return null;
+    } catch (e) {
+      print("Error getting event by code: $e");
+      return null;
+    }
+  }
+
+  Future<DocumentSnapshot?> getEventById(String eventId) async {
+    try {
+      return await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
+          .get();
+    } catch (e) {
+      print("Error getting event by ID: $e");
+      return null;
+    }
+  }
+
   Future addUserBooking(Map<String, dynamic> userInfoMap, String id) async {
     return await FirebaseFirestore.instance
         .collection("users")

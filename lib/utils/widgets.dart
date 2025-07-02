@@ -153,92 +153,9 @@ class QuaternaryButton extends StatelessWidget {
   }
 }
 
-class PixelArtButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String text;
-
-  const PixelArtButton({Key? key, required this.onPressed, required this.text})
-    : super(key: key);
-
-  @override
-  _PixelArtButtonState createState() => _PixelArtButtonState();
-}
-
-class _PixelArtButtonState extends State<PixelArtButton> {
-  bool _isPressed = false;
-
-  void _onTapDown(TapDownDetails details) {
-    setState(() {
-      _isPressed = true;
-    });
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    setState(() {
-      _isPressed = false;
-    });
-    widget.onPressed();
-  }
-
-  void _onTapCancel() {
-    setState(() {
-      _isPressed = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // The 3D effect is created with a custom border
-    // Unpressed state: Black on top/left, Dark Grey on bottom/right
-    // Pressed state: Inverted colors and slightly shifted text
-    final Border border = Border(
-      top: BorderSide(
-        color: _isPressed ? const Color(0xFF808080) : Colors.black,
-        width: 4.0,
-      ),
-      left: BorderSide(
-        color: _isPressed ? const Color(0xFF808080) : Colors.black,
-        width: 4.0,
-      ),
-      right: BorderSide(
-        color: _isPressed ? Colors.black : const Color(0xFF808080),
-        width: 4.0,
-      ),
-      bottom: BorderSide(
-        color: _isPressed ? Colors.black : const Color(0xFF808080),
-        width: 4.0,
-      ),
-    );
-
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: Container(
-        padding: EdgeInsets.only(
-          // Shift text down and right when pressed
-          top: _isPressed ? 10.0 : 8.0,
-          left: 8.0,
-          right: 8.0,
-          bottom: _isPressed ? 8.0 : 10.0,
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFFD3D3D3), // Light grey background
-          border: border,
-        ),
-        child: Text(
-          widget.text,
-          style: GoogleFonts.pressStart2p(fontSize: 16, color: Colors.black),
-        ),
-      ),
-    );
-  }
-}
-
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
-  final double? width;
   final double? height;
   final Color? backgroundColor;
   final Color? textColor;
@@ -248,7 +165,6 @@ class GoogleSignInButton extends StatelessWidget {
     super.key,
     this.onPressed,
     this.text = 'Entrar com o Google',
-    this.width,
     this.height = 48,
     this.backgroundColor,
     this.textColor,
@@ -258,39 +174,135 @@ class GoogleSignInButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width ?? double.infinity,
       height: height,
       child: FilledButton(
         onPressed: onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppColors.primary,
+          backgroundColor: backgroundColor ?? AppColors.btnPrimary,
           foregroundColor: textColor ?? Colors.white,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
               'assets/google.png',
-              width: 24,
-              height: 24,
+              width: 32,
+              height: 32,
               errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.g_mobiledata, size: 24);
+                return Icon(Icons.g_mobiledata, size: 32);
               },
             ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                text.toUpperCase(),
-                style: TextStyle(
-                  fontSize: fontSize ?? 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+            SizedBox(width: 8),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: fontSize ?? 16,
+                fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class CodeInputDialog extends StatefulWidget {
+  final Function(String) onCodeSubmitted;
+
+  const CodeInputDialog({super.key, required this.onCodeSubmitted});
+
+  @override
+  State<CodeInputDialog> createState() => _CodeInputDialogState();
+}
+
+class _CodeInputDialogState extends State<CodeInputDialog> {
+  final TextEditingController _codeController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        'Código de Check-in',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Digite o código de 6 dígitos fornecido pelo palestrante:',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          SizedBox(height: 20),
+          TextField(
+            controller: _codeController,
+            focusNode: _focusNode,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 8,
+            ),
+            decoration: InputDecoration(
+              hintText: '000000',
+              counterText: '',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.primary, width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+            ),
+            onChanged: (value) {
+              if (value.length == 6) {
+                _focusNode.unfocus();
+              }
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Cancelar', style: TextStyle(color: Colors.grey[600])),
+        ),
+        PrimaryButton(
+          text: 'Confirmar',
+          onPressed: () {
+            if (_codeController.text.length == 6) {
+              widget.onCodeSubmitted(_codeController.text);
+              Navigator.of(context).pop();
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Por favor, digite um código de 6 dígitos'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        ),
+      ],
     );
   }
 }

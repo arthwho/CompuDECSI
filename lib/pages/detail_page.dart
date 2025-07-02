@@ -3,9 +3,12 @@ import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+// ignore: must_be_immutable
 class DetailsPage extends StatefulWidget {
   String image, name, local, date, time, description, speaker;
+  String? eventId;
   DetailsPage({
     required this.image,
     required this.name,
@@ -14,6 +17,7 @@ class DetailsPage extends StatefulWidget {
     required this.time,
     required this.description,
     required this.speaker,
+    this.eventId,
   });
 
   @override
@@ -22,6 +26,7 @@ class DetailsPage extends StatefulWidget {
 
 class _DetailsPageState extends State<DetailsPage> {
   String? id, name, image;
+  String? checkinCode;
 
   @override
   void initState() {
@@ -33,12 +38,106 @@ class _DetailsPageState extends State<DetailsPage> {
     id = await SharedpreferenceHelper().getUserId();
     name = await SharedpreferenceHelper().getUserName();
     image = await SharedpreferenceHelper().getUserImage();
+
+    if (widget.eventId != null) {
+      await fetchCheckinCode();
+    }
+
     setState(() {});
+  }
+
+  Future<void> fetchCheckinCode() async {
+    try {
+      DocumentSnapshot? eventDoc = await DatabaseMethods().getEventById(
+        widget.eventId!,
+      );
+      if (eventDoc != null && eventDoc.exists) {
+        setState(() {
+          checkinCode = eventDoc.get('checkinCode') as String?;
+        });
+      }
+    } catch (e) {
+      print("Error fetching check-in code: $e");
+    }
+  }
+
+  void _showCodeInputDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return CodeInputDialog(
+          onCodeSubmitted: (String code) {
+            _validateAndCheckin(code);
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _validateAndCheckin(String code) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(child: CircularProgressIndicator());
+        },
+      );
+
+      // Validate the code
+      DocumentSnapshot? eventDoc = await DatabaseMethods().getEventByCode(code);
+
+      // Hide loading indicator
+      Navigator.of(context).pop();
+
+      if (eventDoc != null) {
+        // Code is valid, proceed with check-in
+        await makeBooking();
+      } else {
+        // Code is invalid
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Código inválido. Verifique o código fornecido pelo palestrante.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Hide loading indicator
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao validar código. Tente novamente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      print(e);
+    }
+  }
+
+  String formatFirstAndLastName(String? fullName) {
+    if (fullName == null || fullName.trim().isEmpty) return '';
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    if (parts.length == 1) {
+      return _capitalize(parts[0]);
+    } else {
+      return _capitalize(parts.first) + ' ' + _capitalize(parts.last);
+    }
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1).toLowerCase();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           '',
@@ -54,102 +153,123 @@ class _DetailsPageState extends State<DetailsPage> {
         ),
       ),
       body: Container(
+        color: Colors.white,
         margin: EdgeInsets.only(
           left: AppSpacing.viewPortSide,
           right: AppSpacing.viewPortSide,
+          bottom: AppSpacing.viewPortBottom,
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(widget.name!, style: AppTextStyle.title),
-            SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.calendar_month_rounded, color: Colors.black),
-                    SizedBox(width: AppSpacing.sm),
-                    Text(widget.date!, style: AppTextStyle.body),
-                  ],
-                ),
-                SizedBox(width: AppSpacing.lg),
-                Row(
-                  children: [
-                    Icon(Icons.alarm_on, color: Colors.black),
-                    SizedBox(width: AppSpacing.sm),
-                    Text(widget.time!, style: AppTextStyle.body),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: AppSpacing.lg),
-            ClipRRect(
-              borderRadius: AppBorderRadius.md,
-              child: Image.asset(
-                'assets/icea.png',
-                width: MediaQuery.of(context).size.width,
-                fit: BoxFit.cover,
-                height: 200,
+            Container(
+              child: Column(
+                children: [
+                  Text(
+                    widget.name,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            widget.date,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.btnPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            '•',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.btnPrimary,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            widget.time,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.btnPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            '•',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.btnPrimary,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            widget.local,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.btnPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: AppSpacing.lg),
+                  // ClipRRect(
+                  //   borderRadius: BorderRadius.circular(8),
+                  //   child: Image.asset(
+                  //     'assets/icea.png',
+                  //     width: MediaQuery.of(context).size.width,
+                  //     fit: BoxFit.cover,
+                  //     height: 200,
+                  //   ),
+                  // ),
+                  SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      // ds["speakerImage"] != null &&
+                      //     ds["speakerImage"].toString().isNotEmpty
+                      // ? CircleAvatar(
+                      //     backgroundImage: NetworkImage(
+                      //       ds["speakerImage"],
+                      //     ),
+                      //     radius: 20,
+                      //   )
+                      Icon(Icons.account_circle, size: 40),
+                      SizedBox(width: 8),
+                      Text(
+                        formatFirstAndLastName(widget.speaker),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: AppSpacing.md),
+                  Text(widget.description!, style: TextStyle(fontSize: 16)),
+                ],
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Sobre a palestra',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Text(widget.description!, style: TextStyle(fontSize: 16)),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Icon(Icons.person, color: Colors.black),
-                      SizedBox(width: 5),
-                      Text(
-                        'Palestrante:',
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        widget.speaker!,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, color: Colors.black),
-                      SizedBox(width: 5),
-                      Text(
-                        'Local:',
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        widget.local!,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
                   SizedBox(height: 30),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: PrimaryButton(
                       text: 'Fazer checkin',
                       onPressed: () {
-                        makeBooking();
+                        _showCodeInputDialog();
                       },
                     ),
                   ),

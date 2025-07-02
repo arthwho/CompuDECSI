@@ -40,6 +40,8 @@ dependencies:
   random_string: ^2.3.1
   intl: ^0.19.0
   google_fonts: ^6.1.0
+  flutter_svg: ^2.0.7
+  animated_emoji: ^3.2.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -48,6 +50,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  mockito: ^5.4.4
+  build_runner: ^2.4.8
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -79,6 +83,9 @@ flutter:
     - assets/qanda_onboarding.png
     - assets/compudecsi_onboarding.png
     - assets/littlenoun.png
+    - assets/checkin_onboarding.svg
+    - assets/qanda_onboarding.svg
+    - assets/compudecsi_onboarding.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

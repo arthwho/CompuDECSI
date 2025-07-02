@@ -1,11 +1,13 @@
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:random_string/random_string.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UploadEvent extends StatefulWidget {
   const UploadEvent({super.key});
@@ -17,7 +19,6 @@ class UploadEvent extends StatefulWidget {
 class _UploadEventState extends State<UploadEvent> {
   TextEditingController nameController = new TextEditingController();
   TextEditingController descriptionController = new TextEditingController();
-  TextEditingController speakerController = new TextEditingController();
   TextEditingController localController = new TextEditingController();
   final List<String> eventCategory = [
     'Data Science',
@@ -32,6 +33,25 @@ class _UploadEventState extends State<UploadEvent> {
   String? value;
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
+  List<Map<String, dynamic>> users = [];
+  Map<String, dynamic>? selectedSpeaker;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsers();
+  }
+
+  Future<void> fetchUsers() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .get();
+    setState(() {
+      users = snapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    });
+  }
 
   Future getImage() async {
     var image = await _picker.pickImage(source: ImageSource.gallery);
@@ -97,45 +117,49 @@ class _UploadEventState extends State<UploadEvent> {
       ),
       body: SingleChildScrollView(
         child: Container(
-          margin: EdgeInsets.only(top: 20, left: 20, right: 20),
+          margin: EdgeInsets.only(
+            left: AppSpacing.viewPortSide,
+            right: AppSpacing.viewPortSide,
+            bottom: AppSpacing.viewPortBottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              selectedImage != null
-                  ? Center(
-                      child: ClipRRect(
-                        borderRadius: AppBorderRadius.md,
-                        child: Image.file(
-                          selectedImage!,
-                          height: 90,
-                          width: 90,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    )
-                  : Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          getImage();
-                        },
-                        child: Container(
-                          height: 90,
-                          width: 90,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black45, width: 2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Icon(
-                            Icons.add_circle,
-                            color: Colors.black45,
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                    ),
-              SizedBox(height: 20),
+              // selectedImage != null
+              //     ? Center(
+              //         child: ClipRRect(
+              //           borderRadius: AppBorderRadius.md,
+              //           child: Image.file(
+              //             selectedImage!,
+              //             height: 90,
+              //             width: 90,
+              //             fit: BoxFit.cover,
+              //           ),
+              //         ),
+              //       )
+              //     : Center(
+              //         child: GestureDetector(
+              //           onTap: () {
+              //             getImage();
+              //           },
+              //           child: Container(
+              //             height: 90,
+              //             width: 90,
+              //             decoration: BoxDecoration(
+              //               border: Border.all(color: Colors.black45, width: 2),
+              //               borderRadius: BorderRadius.circular(20),
+              //             ),
+              //             child: Icon(
+              //               Icons.add_circle,
+              //               color: Colors.black45,
+              //               size: 30,
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              // SizedBox(height: 20),
               Text(
-                'Event Name',
+                'Nome da Palestra',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
@@ -279,11 +303,39 @@ class _UploadEventState extends State<UploadEvent> {
                   color: Color(0xffececf8),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: TextField(
-                  controller: speakerController,
-                  decoration: InputDecoration(
-                    hintText: 'Quem dará a palestra?',
-                    border: InputBorder.none,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<Map<String, dynamic>>(
+                    isExpanded: true,
+                    value: selectedSpeaker,
+                    items: users.map((user) {
+                      return DropdownMenuItem<Map<String, dynamic>>(
+                        value: user,
+                        child: Row(
+                          children: [
+                            user["Image"] != null &&
+                                    user["Image"].toString().isNotEmpty
+                                ? CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      user["Image"],
+                                    ),
+                                    radius: 16,
+                                  )
+                                : CircleAvatar(
+                                    child: Icon(Icons.person),
+                                    radius: 16,
+                                  ),
+                            SizedBox(width: 10),
+                            Text(user["Name"] ?? "Sem nome"),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSpeaker = value;
+                      });
+                    },
+                    hint: Text('Selecione o palestrante'),
                   ),
                 ),
               ),
@@ -328,15 +380,24 @@ class _UploadEventState extends State<UploadEvent> {
                     //);
                     //var downloadUrl = await (await task).ref.getDownloadURL();
                     String id = randomAlphaNumeric(10);
+                    String checkinCode = randomAlphaNumeric(
+                      6,
+                    ); // Generate 6-digit code
                     Map<String, dynamic> uploadEvent = {
                       "image": "", //ou usar o downloadUrl
                       "name": nameController.text,
                       "category": value,
                       "description": descriptionController.text,
-                      "speaker": speakerController.text,
+                      "speaker": selectedSpeaker != null
+                          ? selectedSpeaker!["Name"]
+                          : "",
+                      "speakerImage": selectedSpeaker != null
+                          ? selectedSpeaker!["Image"]
+                          : "",
                       "local": localController.text,
                       "date": DateFormat('dd/MM/yyyy').format(selectedDate!),
                       "time": formatTimeOfDay(selectedTime),
+                      "checkinCode": checkinCode, // Add the check-in code
                     };
                     await DatabaseMethods().addEvent(uploadEvent, id).then((
                       value,
@@ -350,7 +411,6 @@ class _UploadEventState extends State<UploadEvent> {
                       setState(() {
                         nameController.clear();
                         descriptionController.clear();
-                        speakerController.clear();
                         localController.clear();
                         selectedImage = null;
                         value = null;
