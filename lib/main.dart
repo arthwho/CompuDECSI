@@ -2,6 +2,7 @@ import 'package:compudecsi/admin/upload_event.dart';
 import 'package:compudecsi/pages/bottom_nav.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/pages/home.dart';
+import 'package:compudecsi/pages/signup.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/pages/onboarding_page.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         textTheme: GoogleFonts.interTextTheme(),
       ),
-      home: BottomNav(),
+      home: Onboarding(),
     );
   }
 }

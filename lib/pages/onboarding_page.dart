@@ -106,7 +106,6 @@ class _OnboardingState extends State<Onboarding> {
                       AuthMethods().signInWithGoogle(context);
                     },
                     text: 'Continuar com o Google',
-                    backgroundColor: AppColors.btnPrimary,
                     height: 48,
                     fontSize: 16,
                   ),

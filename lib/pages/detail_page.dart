@@ -260,17 +260,68 @@ class _DetailsPageState extends State<DetailsPage> {
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width,
+              child: FilledButton(
+                onPressed: () {},
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.purple,
+                ),
+                child: const Text(
+                  'Inscrever-se',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Container(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 30),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
-                    child: PrimaryButton(
-                      text: 'Fazer checkin',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppColors.red, AppColors.purple],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: FilledButton(
+                            onPressed: () {},
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text(
+                              'Participar do Q&A',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.md),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: OutlinedButton(
                       onPressed: () {
                         _showCodeInputDialog();
                       },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.purple,
+                        side: BorderSide(color: AppColors.purple, width: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                      ),
+                      child: const Text(
+                        'Fazer checkin',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
