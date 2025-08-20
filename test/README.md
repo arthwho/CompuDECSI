@@ -1,143 +1,129 @@
-# CompuDECSI Test Suite
+# Suíte de Testes — CompuDECSI
 
-This directory contains comprehensive unit tests for the CompuDECSI Flutter application.
+Este diretório contém testes de unidade e de widgets do app Flutter CompuDECSI.
 
-## Test Structure
+## Estrutura dos testes
 
 ```
 test/
-├── README.md                    # This file
-├── widget_test.dart             # Main app widget tests
+├── README.md                  # Este arquivo
+├── widget_test.dart           # Testes básicos do app (MyApp/MaterialApp)
 ├── services/
-│   ├── auth_test.dart           # Authentication service tests
-│   └── shared_pref_test.dart    # Shared preferences service tests
+│   └── shared_pref_test.dart  # Testes do helper de SharedPreferences
 ├── utils/
-│   ├── variables_test.dart      # App variables and constants tests
-│   └── widgets_test.dart        # Custom widget component tests
+│   ├── variables_test.dart    # Testes de constantes e estilos
+│   └── widgets_test.dart      # Testes de widgets utilitários
 └── pages/
-    ├── home_test.dart           # Home page widget tests
-    └── onboarding_test.dart     # Onboarding page widget tests
+    ├── home_test.dart         # Testes da tela Home (widget)
+    └── onboarding_test.dart   # Testes da tela Onboarding (widget)
 ```
 
-## Running Tests
+## Como executar
 
-### Run all tests
+- Executar todos os testes
 ```bash
 flutter test
 ```
 
-### Run specific test file
+- Executar um arquivo específico
 ```bash
 flutter test test/services/shared_pref_test.dart
 ```
 
-### Run tests with coverage
+- Executar com cobertura
 ```bash
 flutter test --coverage
 ```
 
-### Run tests with verbose output
+- Executar com saída verbosa
 ```bash
 flutter test --verbose
 ```
 
-## Test Categories
+## Notas importantes (alinhadas à abordagem oficial do Flutter)
 
-### 1. Service Tests (`test/services/`)
-- **shared_pref_test.dart**: Tests for SharedPreferences helper class
-  - Tests saving and retrieving user data
-  - Tests handling of null/empty values
-  - Tests all CRUD operations
-
-### 2. Utility Tests (`test/utils/`)
-- **variables_test.dart**: Tests for app constants and styling
-  - Tests color values
-  - Tests spacing and size constants
-  - Tests text styles and button styles
-- **widgets_test.dart**: Tests for custom widget components
-  - Tests all button variants (Primary, Secondary, Tertiary, Quaternary)
-  - Tests GoogleSignInButton
-  - Tests CodeInputDialog
-
-### 3. Page Tests (`test/pages/`)
-- **home_test.dart**: Tests for Home page functionality
-  - Tests greeting display
-  - Tests search bar rendering
-  - Tests carousel with category cards
-  - Tests name formatting logic
-- **onboarding_test.dart**: Tests for Onboarding page
-  - Tests page content rendering
-  - Tests page navigation
-  - Tests animated components
-  - Tests onboarding data structure
-
-### 4. Main App Tests (`test/widget_test.dart`)
-- Tests main app initialization
-- Tests app configuration (title, debug banner, etc.)
-
-## Test Dependencies
-
-The tests use the following dependencies (already added to `pubspec.yaml`):
-- `flutter_test`: Flutter's testing framework
-- `mockito`: For creating mocks (when needed)
-- `build_runner`: For generating mock classes
-
-## Writing New Tests
-
-When adding new features, follow these guidelines:
-
-1. **Test Structure**: Use the Arrange-Act-Assert pattern
-2. **Test Naming**: Use descriptive test names that explain what is being tested
-3. **Grouping**: Group related tests using `group()` blocks
-4. **Coverage**: Aim for high test coverage, especially for business logic
-5. **Mocking**: Use mocks for external dependencies (Firebase, network calls, etc.)
-
-### Example Test Structure
+- Inicialização do binding (necessário para testes que usam serviços de plataforma, como SharedPreferences):
 ```dart
-group('FeatureName', () {
-  test('should do something when condition is met', () async {
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  // ... seus testes
+}
+```
+
+- Mock de SharedPreferences (antes dos testes que leem/escrevem prefs):
+```dart
+import 'package:shared_preferences/shared_preferences.dart';
+
+setUp(() async {
+  SharedPreferences.setMockInitialValues({});
+});
+```
+
+- Animações infinitas em testes de widget: evite `pumpAndSettle()` quando houver animações contínuas (por exemplo, `AnimationController.repeat`). Prefira `await tester.pump(const Duration(milliseconds: 100));` para avançar alguns frames.
+
+- Assets em testes: utilize apenas assets presentes em `pubspec.yaml` (ex.: `assets/compudecsi_onboarding.png`, `assets/qanda_onboarding.svg`, `assets/Onboarding.gif`). Referências a `assets/test.png/.gif/.svg` irão falhar.
+
+- Dependências de Firebase em testes de widget: como as telas podem chamar Firestore/Authentication no `initState`, é necessário mockar Firebase (por exemplo com libs de mock) ou isolar a lógica via injeção de dependência. Sem mocks, esses testes podem falhar em ambientes de CI. Alternativas:
+  - Introduzir fakes/mocks de Firebase (ex.: `fake_cloud_firestore`) e injetar nos widgets.
+  - Desacoplar a busca de dados do `initState` e testar a UI com dados estáticos.
+  - Marcar temporariamente como `skip` os testes que dependem de Firebase até configurar os mocks.
+
+## Categorias de testes
+
+- Services (`test/services/`)
+  - `shared_pref_test.dart`: salva/recupera dados do usuário em `SharedPreferences` usando mocks.
+
+- Utils (`test/utils/`)
+  - `variables_test.dart`: valida constantes (cores, espaçamentos, estilos).
+  - `widgets_test.dart`: valida botões utilitários, `GoogleSignInButton` e `CodeInputDialog`.
+
+- Pages (`test/pages/`)
+  - `home_test.dart`: valida elementos principais da Home. Observação: evite dependência direta de Firebase sem mocks.
+  - `onboarding_test.dart`: valida conteúdo, indicadores, swipe e componentes. Use `pump` com duração finita em vez de `pumpAndSettle` devido a animações contínuas.
+
+- App principal (`test/widget_test.dart`)
+  - Inicialização básica do app e configurações do `MaterialApp`.
+
+## Boas práticas ao escrever novos testes
+
+1) Use o padrão Arrange–Act–Assert
+2) Nomeie os testes de forma descritiva
+3) Agrupe testes relacionados com `group()`
+4) Priorize cobertura de lógica de negócio
+5) Mocke dependências externas (Firebase, rede, etc.)
+
+Exemplo:
+```dart
+group('MinhaFuncionalidade', () {
+  test('deve retornar valor esperado quando X', () async {
     // Arrange
-    final testData = 'test';
-    
+    final dado = 'teste';
+
     // Act
-    final result = await someFunction(testData);
-    
+    final resultado = await minhaFuncao(dado);
+
     // Assert
-    expect(result, equals(expectedValue));
+    expect(resultado, equals(valorEsperado));
   });
 });
 ```
 
-## Continuous Integration
+## Dicas de CI
 
-These tests are designed to run in CI/CD pipelines. Make sure all tests pass before merging code changes.
+Configurar mocks de plataforma (SharedPreferences) e Firebase antes de rodar a suíte em CI. Evitar dependências em animações infinitas (use `pump` com duração finita).
 
-## Coverage Goals
+## Metas de cobertura (sugeridas)
 
-- **Services**: 90%+ coverage
-- **Utils**: 95%+ coverage  
-- **Pages**: 80%+ coverage (focus on business logic)
-- **Overall**: 85%+ coverage
+- Services: 90%+
+- Utils: 95%+
+- Pages: 80%+
+- Geral: 85%+
 
-## Troubleshooting
+## Solução de problemas comuns
 
-### Common Issues
-
-1. **Firebase Tests**: Some tests may fail if Firebase is not properly configured for testing
-2. **Asset Tests**: Image asset tests may fail if assets are not properly declared in `pubspec.yaml`
-3. **Mock Generation**: Run `flutter packages pub run build_runner build` if you need to generate mocks
-
-### Running Tests in Isolation
-
-If you're having issues with specific tests, you can run them in isolation:
-
-```bash
-# Run only service tests
-flutter test test/services/
-
-# Run only widget tests
-flutter test test/utils/ test/pages/
-
-# Run a single test
-flutter test test/services/shared_pref_test.dart
-``` 
+1) Falhas com Firebase: mocke os serviços ou isole a UI da camada de dados.
+2) Falhas com assets: garanta que os arquivos foram declarados em `pubspec.yaml` e use apenas os existentes.
+3) `Binding has not yet been initialized`: chame `TestWidgetsFlutterBinding.ensureInitialized()` no `main()` do arquivo de testes e/ou `SharedPreferences.setMockInitialValues({})` no `setUp`.
+4) `pumpAndSettle timed out`: troque por `tester.pump(const Duration(...))` quando houver animações contínuas.

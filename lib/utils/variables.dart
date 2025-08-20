@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static Color primary = Color(0xff9F21A0);
-  static Color btnPrimary = Color(0xffAC2180);
+  static Color primary = Color(0xffAC213B);
+  static Color btnPrimary = Color(0xffAC213B);
+  static Color red = Color(0xffAC213B);
+  static Color purple = Color(0xffAC2180);
   static Color black = Color(0xff262628);
   static Color white = Color(0xffFDFCFA);
   static Color blue = Color(0xff274560);
