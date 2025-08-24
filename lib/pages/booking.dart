@@ -138,6 +138,7 @@ class _BookingState extends State<Booking> {
                                 time: eventData['time'] ?? '',
                                 description: eventData['description'] ?? '',
                                 speaker: eventData['speaker'] ?? '',
+                                speakerImage: eventData['speakerImage'] ?? '',
                                 eventId: eventId,
                               ),
                             ),
@@ -242,7 +243,20 @@ class _BookingState extends State<Booking> {
                                 children: <Widget>[
                                   Row(
                                     children: [
-                                      Icon(Icons.account_circle, size: 40),
+                                      eventData['speakerImage'] != null &&
+                                              eventData['speakerImage']
+                                                  .toString()
+                                                  .isNotEmpty
+                                          ? CircleAvatar(
+                                              backgroundImage: NetworkImage(
+                                                eventData['speakerImage'],
+                                              ),
+                                              radius: 20,
+                                            )
+                                          : Icon(
+                                              Icons.account_circle,
+                                              size: 40,
+                                            ),
                                       SizedBox(width: 8),
                                       Text(
                                         formatFirstAndLastName(

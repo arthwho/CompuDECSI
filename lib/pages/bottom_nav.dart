@@ -16,7 +16,7 @@ class BottomNav extends StatefulWidget {
 class _BottomNavState extends State<BottomNav> {
   int currentIndex = 0;
 
-  List<_TabItem> _buildTabs({required bool isAdmin}) {
+  List<_TabItem> _buildTabs({required bool isAdmin, String? userImage}) {
     final tabs = <_TabItem>[
       _TabItem(
         label: 'Início',
@@ -32,6 +32,7 @@ class _BottomNavState extends State<BottomNav> {
         label: 'Perfil',
         icon: const Icon(Icons.person),
         page: const Profile(),
+        userImage: userImage,
       ),
     ];
     if (isAdmin) {
@@ -60,8 +61,9 @@ class _BottomNavState extends State<BottomNav> {
       stream: stream,
       builder: (context, snap) {
         final role = snap.data?.data()?['role'] as String? ?? 'student';
+        final userImage = snap.data?.data()?['Image'] as String?;
         final isAdmin = role == 'admin';
-        final tabs = _buildTabs(isAdmin: isAdmin);
+        final tabs = _buildTabs(isAdmin: isAdmin, userImage: userImage);
         // Clamp index if tabs changed (e.g., admin -> non-admin)
         if (currentIndex >= tabs.length) currentIndex = tabs.length - 1;
 
@@ -77,9 +79,21 @@ class _BottomNavState extends State<BottomNav> {
                 currentIndex = index;
               });
             },
-            destinations: tabs
-                .map((t) => NavigationDestination(icon: t.icon, label: t.label))
-                .toList(),
+            destinations: tabs.map((t) {
+              // Special handling for profile tab with user image
+              if (t.label == 'Perfil' &&
+                  t.userImage != null &&
+                  t.userImage!.isNotEmpty) {
+                return NavigationDestination(
+                  icon: CircleAvatar(
+                    backgroundImage: NetworkImage(t.userImage!),
+                    radius: 12,
+                  ),
+                  label: t.label,
+                );
+              }
+              return NavigationDestination(icon: t.icon, label: t.label);
+            }).toList(),
           ),
           body: tabs[currentIndex].page,
         );
@@ -92,5 +106,11 @@ class _TabItem {
   final String label;
   final Icon icon;
   final Widget page;
-  _TabItem({required this.label, required this.icon, required this.page});
+  final String? userImage;
+  _TabItem({
+    required this.label,
+    required this.icon,
+    required this.page,
+    this.userImage,
+  });
 }

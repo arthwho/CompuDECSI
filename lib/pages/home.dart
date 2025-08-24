@@ -225,6 +225,7 @@ class _HomeState extends State<Home> {
                               time: ds["time"] ?? '',
                               description: ds["description"] ?? '',
                               speaker: ds["speaker"] ?? '',
+                              speakerImage: ds["speakerImage"] ?? '',
                               eventId: ds.id,
                             );
                           },
@@ -365,15 +366,15 @@ class _HomeState extends State<Home> {
                           children: <Widget>[
                             Row(
                               children: [
-                                // ds["speakerImage"] != null &&
-                                //     ds["speakerImage"].toString().isNotEmpty
-                                // ? CircleAvatar(
-                                //     backgroundImage: NetworkImage(
-                                //       ds["speakerImage"],
-                                //     ),
-                                //     radius: 20,
-                                //   )
-                                Icon(Icons.account_circle, size: 40),
+                                ds["speakerImage"] != null &&
+                                        ds["speakerImage"].toString().isNotEmpty
+                                    ? CircleAvatar(
+                                        backgroundImage: NetworkImage(
+                                          ds["speakerImage"],
+                                        ),
+                                        radius: 20,
+                                      )
+                                    : Icon(Icons.account_circle, size: 40),
                                 SizedBox(width: 8),
                                 Text(
                                   formatFirstAndLastName(ds["speaker"]),
@@ -522,6 +523,7 @@ class _HomeState extends State<Home> {
                                       time: data['time'] ?? '',
                                       description: data['description'] ?? '',
                                       speaker: data['speaker'] ?? '',
+                                      speakerImage: data['speakerImage'] ?? '',
                                       eventId: doc.id,
                                     );
                                   },
@@ -591,6 +593,7 @@ class _HomeState extends State<Home> {
                                     time: data['time'] ?? '',
                                     description: data['description'] ?? '',
                                     speaker: data['speaker'] ?? '',
+                                    speakerImage: data['speakerImage'] ?? '',
                                     eventId: doc.id,
                                   );
                                 },

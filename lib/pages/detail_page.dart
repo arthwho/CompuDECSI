@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DetailsPage extends StatefulWidget {
   String image, name, local, date, time, description, speaker;
   String? eventId;
+  String? speakerImage;
   DetailsPage({
     required this.image,
     required this.name,
@@ -21,6 +22,7 @@ class DetailsPage extends StatefulWidget {
     required this.description,
     required this.speaker,
     this.eventId,
+    this.speakerImage,
   });
 
   @override
@@ -230,7 +232,7 @@ class _DetailsPageState extends State<DetailsPage> {
           '',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black, size: 30),
@@ -341,15 +343,15 @@ class _DetailsPageState extends State<DetailsPage> {
                   SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
-                      // ds["speakerImage"] != null &&
-                      //     ds["speakerImage"].toString().isNotEmpty
-                      // ? CircleAvatar(
-                      //     backgroundImage: NetworkImage(
-                      //       ds["speakerImage"],
-                      //     ),
-                      //     radius: 20,
-                      //   )
-                      Icon(Icons.account_circle, size: 40),
+                      widget.speakerImage != null &&
+                              widget.speakerImage!.isNotEmpty
+                          ? CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                widget.speakerImage!,
+                              ),
+                              radius: 20,
+                            )
+                          : Icon(Icons.account_circle, size: 40),
                       SizedBox(width: 8),
                       Text(
                         formatFirstAndLastName(widget.speaker),
