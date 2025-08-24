@@ -8,7 +8,10 @@ plugins {
 
 android {
     namespace = "com.example.compudecsi"
-    compileSdk = flutter.compileSdkVersion
+
+    // Em Kotlin DSL use propriedade, e converta para Int se vier como String
+    compileSdk = flutter.compileSdkVersion.toInt()
+
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -21,21 +24,30 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.compudecsi"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
+
+        // Kotlin DSL: use minSdk/targetSdk como propriedades
+        minSdk = flutter.minSdkVersion.toInt()
+        targetSdk = flutter.targetSdkVersion.toInt()
+
+        // versionCode precisa ser Int; versionName é String
+        versionCode = flutter.versionCode.toInt()
         versionName = flutter.versionName
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Ajuste sua assinatura depois; debug temporário para facilitar build release local
             signingConfig = signingConfigs.getByName("debug")
+            // Ex.: habilitar minify se quiser
+            // isMinifyEnabled = true
+            // proguardFiles(
+            //     getDefaultProguardFile("proguard-android-optimize.txt"),
+            //     "proguard-rules.pro"
+            // )
+        }
+        debug {
+            // configs opcionais para debug
         }
     }
 }
@@ -44,7 +56,7 @@ flutter {
     source = "../.."
 }
 
-dependencies{
+dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")

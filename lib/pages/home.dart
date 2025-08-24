@@ -1,5 +1,7 @@
 import 'package:animated_emoji/emojis.g.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:compudecsi/admin/admin_panel.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/utils/variables.dart';
@@ -228,6 +230,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -361,6 +364,29 @@ class _HomeState extends State<Home> {
           ),
         ),
       ),
+      floatingActionButton: currentUser == null
+          ? null
+          : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(currentUser.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const SizedBox.shrink();
+                final role = snapshot.data!.data()?['role'] as String?;
+                if (role != 'admin') return const SizedBox.shrink();
+                return FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AdminPanel()),
+                    );
+                  },
+                  icon: const Icon(Icons.admin_panel_settings),
+                  label: const Text('Admin'),
+                );
+              },
+            ),
     );
   }
 }
