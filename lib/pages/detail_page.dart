@@ -1,4 +1,5 @@
 import 'package:compudecsi/services/database.dart';
+import 'package:compudecsi/pages/qa_page.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/utils/widgets.dart';
@@ -290,7 +291,19 @@ class _DetailsPageState extends State<DetailsPage> {
                             borderRadius: BorderRadius.circular(100),
                           ),
                           child: FilledButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              final sessionId =
+                                  widget.eventId ??
+                                  widget.name.trim().toLowerCase();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => QAPage(
+                                    sessionId: sessionId,
+                                    sessionTitle: 'Q&A — ' + widget.name,
+                                  ),
+                                ),
+                              );
+                            },
                             style: FilledButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               foregroundColor: Colors.white,

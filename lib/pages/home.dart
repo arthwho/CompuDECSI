@@ -10,18 +10,20 @@ import 'package:compudecsi/services/shared_pref.dart';
 import 'package:animated_emoji/animated_emoji.dart';
 
 enum CardInfo {
-  dataScience('Data Science', Icons.analytics),
-  cryptography('Criptografia', Icons.security),
-  robotics('Robótica', Icons.smart_toy),
-  ai('Inteligência\n Artificial', Icons.psychology),
-  software('Software', Icons.code),
-  computing('Computação', Icons.computer),
-  electronics('Eletrônica', Icons.electric_bolt),
-  telecom('Redes', Icons.signal_cellular_alt);
+  dataScience('Data Science', 'data_science', Icons.analytics),
+  cryptography('Criptografia', 'cryptography', Icons.security),
+  robotics('Robótica', 'robotics', Icons.smart_toy),
+  ai('Inteligência\n Artificial', 'ai', Icons.psychology),
+  software('Software', 'software', Icons.code),
+  computing('Computação', 'computing', Icons.computer),
+  electronics('Eletrônica', 'electronics', Icons.electric_bolt),
+  telecom('Redes', 'telecom', Icons.signal_cellular_alt);
 
-  const CardInfo(this.label, this.icon);
-  final String label;
+  const CardInfo(this.label, this.value, this.icon);
+  final String label; // Texto para UI
+  final String value; // Valor canônico salvo no Firestore (category)
   final IconData icon;
+
   final Color color = const Color(0xff841e73);
   final Color backgroundColor = const Color(0xffF9E6F3);
 }
@@ -34,7 +36,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Stream? eventStream;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? eventStream;
+  String? selectedCategoryValue; // slug canônico (ex.: "ai")
   String? userName;
 
   String formatFirstAndLastName(String? fullName) {
@@ -52,10 +55,37 @@ class _HomeState extends State<Home> {
     return s[0].toUpperCase() + s.substring(1).toLowerCase();
   }
 
-  onTheLoad() async {
-    eventStream = await DatabaseMethods().getAllEvents();
+  Future<void> onTheLoad() async {
+    eventStream = FirebaseFirestore.instance.collection('events').snapshots();
     userName = await SharedpreferenceHelper().getUserName();
-    setState(() {});
+    if (mounted) setState(() {});
+  }
+
+  String labelFor(String value) {
+    return CardInfo.values
+        .firstWhere((c) => c.value == value)
+        .label
+        .replaceAll('\n', ' ');
+  }
+
+  void _applyFilter(String? value) {
+    setState(() {
+      selectedCategoryValue = value;
+      eventStream = (value == null)
+          ? FirebaseFirestore.instance.collection('events').snapshots()
+          : FirebaseFirestore.instance
+                .collection('events')
+                .where('category', isEqualTo: value)
+                .snapshots();
+    });
+    if (!mounted) return;
+    final msg = value == null
+        ? 'Filtro limpo: mostrando todas as palestras'
+        : 'Filtrando por "${labelFor(value)}"';
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(duration: const Duration(milliseconds: 900), content: Text(msg)),
+    );
   }
 
   @override
@@ -65,163 +95,173 @@ class _HomeState extends State<Home> {
   }
 
   Widget allEvents() {
-    return StreamBuilder(
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      key: ValueKey(selectedCategoryValue ?? 'all'),
       stream: eventStream,
-      builder: (context, AsyncSnapshot snapshot) {
-        return snapshot.hasData
-            ? ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: snapshot.data.docs.length,
-                itemBuilder: (context, index) {
-                  DocumentSnapshot ds = snapshot.data.docs[index];
-                  return Center(
-                    child: Card(
-                      color: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: AppColors.border),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          final sem = 'Nenhuma palestra encontrada';
+          final comp = (selectedCategoryValue != null)
+              ? ' para "${labelFor(selectedCategoryValue!)}"'
+              : '';
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Center(child: Text(sem + comp)),
+          );
+        }
+        final docs = snapshot.data!.docs;
+        return ListView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final ds = docs[index];
+            return Center(
+              child: Card(
+                color: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: AppColors.border),
+                ),
+                clipBehavior:
+                    Clip.antiAlias, // Ensures the image respects card corners
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsPage(
+                          image: ds["image"],
+                          name: ds["name"],
+                          local: ds["local"],
+                          date: ds["date"],
+                          time: ds["time"],
+                          description: ds["description"],
+                          speaker: ds["speaker"],
+                          eventId: ds.id,
+                        ),
                       ),
-                      clipBehavior: Clip
-                          .antiAlias, // Ensures the image respects card corners
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DetailsPage(
-                                image: ds["image"],
-                                name: ds["name"],
-                                local: ds["local"],
-                                date: ds["date"],
-                                time: ds["time"],
-                                description: ds["description"],
-                                speaker: ds["speaker"],
-                                eventId: ds.id,
+                    );
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      // Card Header
+                      ListTile(
+                        title: Text(
+                          ds["name"] ?? "Sem título",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              ds["date"],
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          );
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            // Card Header
-                            ListTile(
-                              title: Text(
-                                ds["name"] ?? "Sem título",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
+                            SizedBox(width: 8),
+                            Text(
+                              '•',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 16.0,
-                                bottom: 8.0,
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    ds["date"],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    '•',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    ds["time"],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    '•',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    ds["local"],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                            SizedBox(width: 8),
+                            Text(
+                              ds["time"],
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            // Event image
-                            // ds["image"] != null &&
-                            //         ds["image"].toString().isNotEmpty
-                            //     ? Image.network(
-                            //         ds["image"],
-                            //         height: 200,
-                            //         width: double.infinity,
-                            //         fit: BoxFit.cover,
-                            //       )
-                            //     : Image.asset(
-                            //         'assets/icea.png',
-                            //         height: 200,
-                            //         width: double.infinity,
-                            //         fit: BoxFit.cover,
-                            //       ),
-                            // Event details
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Row(
-                                    children: [
-                                      // ds["speakerImage"] != null &&
-                                      //     ds["speakerImage"].toString().isNotEmpty
-                                      // ? CircleAvatar(
-                                      //     backgroundImage: NetworkImage(
-                                      //       ds["speakerImage"],
-                                      //     ),
-                                      //     radius: 20,
-                                      //   )
-                                      Icon(Icons.account_circle, size: 40),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        formatFirstAndLastName(ds["speaker"]),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                            SizedBox(width: 8),
+                            Text(
+                              '•',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              ds["local"],
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  );
-                },
-              )
-            : Container();
+                      // Event image
+                      // ds["image"] != null &&
+                      //         ds["image"].toString().isNotEmpty
+                      //     ? Image.network(
+                      //         ds["image"],
+                      //         height: 200,
+                      //         width: double.infinity,
+                      //         fit: BoxFit.cover,
+                      //       )
+                      //     : Image.asset(
+                      //         'assets/icea.png',
+                      //         height: 200,
+                      //         width: double.infinity,
+                      //         fit: BoxFit.cover,
+                      //       ),
+                      // Event details
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: [
+                                // ds["speakerImage"] != null &&
+                                //     ds["speakerImage"].toString().isNotEmpty
+                                // ? CircleAvatar(
+                                //     backgroundImage: NetworkImage(
+                                //       ds["speakerImage"],
+                                //     ),
+                                //     radius: 20,
+                                //   )
+                                Icon(Icons.account_circle, size: 40),
+                                SizedBox(width: 8),
+                                Text(
+                                  formatFirstAndLastName(ds["speaker"]),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -309,31 +349,39 @@ class _HomeState extends State<Home> {
                   shrinkExtent: 300,
                   consumeMaxWeight: true,
                   children: CardInfo.values.map((CardInfo info) {
+                    final isActive = selectedCategoryValue == info.value;
                     return Material(
-                      elevation: 3.0,
+                      elevation: isActive ? 6.0 : 3.0,
                       borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: info.backgroundColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: EdgeInsets.all(15),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(info.icon, color: info.color, size: 32.0),
-                            SizedBox(height: 8),
-                            Text(
-                              info.label,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: info.color,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => _applyFilter(info.value),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: info.backgroundColor,
+                            borderRadius: BorderRadius.circular(10),
+                            border: isActive
+                                ? Border.all(color: info.color, width: 2)
+                                : null,
+                          ),
+                          padding: EdgeInsets.all(15),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(info.icon, color: info.color, size: 32.0),
+                              SizedBox(height: 8),
+                              Text(
+                                info.label,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: info.color,
+                                ),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.clip,
+                                softWrap: false,
                               ),
-                              textAlign: TextAlign.center,
-                              overflow: TextOverflow.clip,
-                              softWrap: false,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -352,9 +400,22 @@ class _HomeState extends State<Home> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
+                  Row(
+                    children: [
+                      if (selectedCategoryValue != null)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Chip(
+                            label: Text(labelFor(selectedCategoryValue!)),
+                            deleteIcon: const Icon(Icons.close),
+                            onDeleted: () => _applyFilter(null),
+                          ),
+                        ),
+                      TextButton(
+                        onPressed: () => _applyFilter(null),
+                        child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
+                      ),
+                    ],
                   ),
                 ],
               ),
