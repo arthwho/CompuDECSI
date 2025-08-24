@@ -1,6 +1,8 @@
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/pages/qa_page.dart';
 import 'package:compudecsi/services/shared_pref.dart';
+import 'package:compudecsi/services/event_service.dart';
+import 'package:compudecsi/pages/feedback_page.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,8 @@ class DetailsPage extends StatefulWidget {
 class _DetailsPageState extends State<DetailsPage> {
   String? id, name, image;
   String? checkinCode;
+  Map<String, dynamic>? _eventData;
+  bool _isFinished = false;
 
   @override
   void initState() {
@@ -41,20 +45,24 @@ class _DetailsPageState extends State<DetailsPage> {
     image = await SharedpreferenceHelper().getUserImage();
 
     if (widget.eventId != null) {
-      await fetchCheckinCode();
+      await _fetchEvent();
     }
 
     setState(() {});
   }
 
-  Future<void> fetchCheckinCode() async {
+  Future<void> _fetchEvent() async {
     try {
       DocumentSnapshot? eventDoc = await DatabaseMethods().getEventById(
         widget.eventId!,
       );
       if (eventDoc != null && eventDoc.exists) {
+        final data = eventDoc.data() as Map<String, dynamic>;
+        final finished = EventService().isFinished(data);
         setState(() {
-          checkinCode = eventDoc.get('checkinCode') as String?;
+          _eventData = data;
+          _isFinished = finished;
+          checkinCode = data['checkinCode'] as String?;
         });
       }
     } catch (e) {
@@ -171,6 +179,22 @@ class _DetailsPageState extends State<DetailsPage> {
                     widget.name,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
+                  if (_isFinished) ...[
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.event_available, color: AppColors.purple, size: 20),
+                        SizedBox(width: 6),
+                        Text(
+                          'Evento finalizado',
+                          style: TextStyle(
+                            color: AppColors.purple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
@@ -259,19 +283,46 @@ class _DetailsPageState extends State<DetailsPage> {
                 ],
               ),
             ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: FilledButton(
-                onPressed: () {},
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.purple,
+            // Action buttons
+            if (_isFinished)
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: FilledButton(
+                  onPressed: () {
+                    final title = 'Avaliar — ' + widget.name;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FeedbackPage(
+                          eventId: widget.eventId ?? widget.name,
+                          eventTitle: title,
+                        ),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.purple,
+                  ),
+                  child: const Text(
+                    'Avaliar evento',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-                child: const Text(
-                  'Inscrever-se',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              )
+            else
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: FilledButton(
+                  onPressed: () {},
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.purple,
+                  ),
+                  child: const Text(
+                    'Inscrever-se',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
             Container(
               child: Column(
                 children: [
@@ -291,25 +342,28 @@ class _DetailsPageState extends State<DetailsPage> {
                             borderRadius: BorderRadius.circular(100),
                           ),
                           child: FilledButton(
-                            onPressed: () {
-                              final sessionId =
-                                  widget.eventId ??
-                                  widget.name.trim().toLowerCase();
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => QAPage(
-                                    sessionId: sessionId,
-                                    sessionTitle: 'Q&A — ' + widget.name,
-                                  ),
-                                ),
-                              );
-                            },
+                            onPressed: _isFinished
+                                ? null
+                                : () {
+                                    final sessionId = widget.eventId ??
+                                        widget.name.trim().toLowerCase();
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => QAPage(
+                                          sessionId: sessionId,
+                                          sessionTitle: 'Q&A — ' + widget.name,
+                                        ),
+                                      ),
+                                    );
+                                  },
                             style: FilledButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               foregroundColor: Colors.white,
                             ),
                             child: Text(
-                              'Participar do Q&A',
+                              _isFinished
+                                  ? 'Q&A indisponível (finalizado)'
+                                  : 'Participar do Q&A',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -321,9 +375,7 @@ class _DetailsPageState extends State<DetailsPage> {
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: OutlinedButton(
-                      onPressed: () {
-                        _showCodeInputDialog();
-                      },
+                      onPressed: _isFinished ? null : _showCodeInputDialog,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.purple,
                         side: BorderSide(color: AppColors.purple, width: 2),
@@ -331,9 +383,9 @@ class _DetailsPageState extends State<DetailsPage> {
                           borderRadius: BorderRadius.circular(100),
                         ),
                       ),
-                      child: const Text(
-                        'Fazer checkin',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text(
+                        _isFinished ? 'Check-in indisponível (finalizado)' : 'Fazer checkin',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
