@@ -47,6 +47,10 @@ class _QuestionInputState extends State<QuestionInput> {
             controller: _controller,
             minLines: 1,
             maxLines: 3,
+            textInputAction: TextInputAction.send,
+            keyboardType: TextInputType.multiline,
+            enableSuggestions: true,
+            autocorrect: true,
             decoration: const InputDecoration(
               hintText: 'Faça sua pergunta...',
               border: OutlineInputBorder(),

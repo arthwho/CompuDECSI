@@ -105,6 +105,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
             TextField(
               controller: _commentCtrl,
               maxLines: 5,
+              textInputAction: TextInputAction.newline,
+              keyboardType: TextInputType.multiline,
+              enableSuggestions: true,
+              autocorrect: true,
               decoration: InputDecoration(
                 hintText: 'Conte como foi sua experiência...',
                 filled: true,

@@ -1,23 +1,21 @@
-import 'package:animated_emoji/emojis.g.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/admin/admin_panel.dart';
 import 'package:compudecsi/pages/detail_page.dart';
-import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:animated_emoji/animated_emoji.dart';
 
 enum CardInfo {
-  dataScience('Data Science', 'data_science', Icons.analytics),
-  cryptography('Criptografia', 'cryptography', Icons.security),
-  robotics('Robótica', 'robotics', Icons.smart_toy),
-  ai('Inteligência\n Artificial', 'ai', Icons.psychology),
-  software('Software', 'software', Icons.code),
-  computing('Computação', 'computing', Icons.computer),
-  electronics('Eletrônica', 'electronics', Icons.electric_bolt),
-  telecom('Redes', 'telecom', Icons.signal_cellular_alt);
+  dataScience('Data Science', 'Data Science', Icons.analytics),
+  cryptography('Criptografia', 'Criptografia', Icons.security),
+  robotics('Robótica', 'Robótica', Icons.smart_toy),
+  ai('Inteligência\n Artificial', 'Inteligência Artificial', Icons.psychology),
+  software('Software', 'Software', Icons.code),
+  computing('Computação', 'Computação', Icons.computer),
+  electronics('Eletrônica', 'Eletrônica', Icons.electric_bolt),
+  telecom('Redes', 'Redes', Icons.signal_cellular_alt);
 
   const CardInfo(this.label, this.value, this.icon);
   final String label; // Texto para UI
@@ -39,6 +37,8 @@ class _HomeState extends State<Home> {
   Stream<QuerySnapshot<Map<String, dynamic>>>? eventStream;
   String? selectedCategoryValue; // slug canônico (ex.: "ai")
   String? userName;
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> _allEvents =
+      []; // Store all events for search
 
   String formatFirstAndLastName(String? fullName) {
     if (fullName == null || fullName.trim().isEmpty) return '';
@@ -58,7 +58,48 @@ class _HomeState extends State<Home> {
   Future<void> onTheLoad() async {
     eventStream = FirebaseFirestore.instance.collection('events').snapshots();
     userName = await SharedpreferenceHelper().getUserName();
+
+    // Debug: Print all valid category values
+    print('=== VALID CATEGORY VALUES ===');
+    for (final cardInfo in CardInfo.values) {
+      print('${cardInfo.label} -> ${cardInfo.value}');
+    }
+
     if (mounted) setState(() {});
+  }
+
+  // Method to search events
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> _searchEvents(
+    String query,
+  ) {
+    if (query.isEmpty) return [];
+
+    final lowercaseQuery = query.toLowerCase();
+    print('Searching for: "$lowercaseQuery"');
+    print('Available events: ${_allEvents.length}');
+
+    final results = _allEvents.where((doc) {
+      final data = doc.data();
+      final name = (data['name'] ?? '').toString().toLowerCase();
+      final speaker = (data['speaker'] ?? '').toString().toLowerCase();
+      final description = (data['description'] ?? '').toString().toLowerCase();
+      final local = (data['local'] ?? '').toString().toLowerCase();
+
+      final matches =
+          name.contains(lowercaseQuery) ||
+          speaker.contains(lowercaseQuery) ||
+          description.contains(lowercaseQuery) ||
+          local.contains(lowercaseQuery);
+
+      if (matches) {
+        print('Match found: $name');
+      }
+
+      return matches;
+    }).toList();
+
+    print('Search results: ${results.length}');
+    return results;
   }
 
   String labelFor(String value) {
@@ -69,6 +110,20 @@ class _HomeState extends State<Home> {
   }
 
   void _applyFilter(String? value) {
+    print('=== APPLYING FILTER ===');
+    print('Current filter: $selectedCategoryValue');
+    print('New filter value: $value');
+
+    // If tapping the same category, clear the filter
+    if (selectedCategoryValue == value) {
+      print('Same category tapped - clearing filter');
+      value = null;
+    }
+
+    if (value != null) {
+      print('Filter label: ${labelFor(value)}');
+    }
+
     setState(() {
       selectedCategoryValue = value;
       eventStream = (value == null)
@@ -78,6 +133,7 @@ class _HomeState extends State<Home> {
                 .where('category', isEqualTo: value)
                 .snapshots();
     });
+
     if (!mounted) return;
     final msg = value == null
         ? 'Filtro limpo: mostrando todas as palestras'
@@ -112,7 +168,24 @@ class _HomeState extends State<Home> {
             child: Center(child: Text(sem + comp)),
           );
         }
+
+        // Update the all events list for search functionality
+        _allEvents = snapshot.data!.docs;
         final docs = snapshot.data!.docs;
+        print('Updated _allEvents with ${_allEvents.length} events');
+        if (_allEvents.isNotEmpty) {
+          print('First event: ${_allEvents.first.data()['name']}');
+
+          // Debug: Print all events and their categories
+          print('=== ALL EVENTS DEBUG ===');
+          for (int i = 0; i < docs.length; i++) {
+            final event = docs[i];
+            final data = event.data();
+            print(
+              'Event ${i + 1}: ${data['name']} - Category: ${data['category']}',
+            );
+          }
+        }
         return ListView.builder(
           padding: EdgeInsets.zero,
           shrinkWrap: true,
@@ -132,21 +205,42 @@ class _HomeState extends State<Home> {
                     Clip.antiAlias, // Ensures the image respects card corners
                 child: InkWell(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailsPage(
-                          image: ds["image"],
-                          name: ds["name"],
-                          local: ds["local"],
-                          date: ds["date"],
-                          time: ds["time"],
-                          description: ds["description"],
-                          speaker: ds["speaker"],
-                          eventId: ds.id,
+                    print('=== MAIN EVENT CARD TAPPED ===');
+                    print('Event name: ${ds["name"]}');
+                    print('Event ID: ${ds.id}');
+
+                    try {
+                      print('Attempting navigation from main card...');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            print('Building DetailsPage from main card...');
+                            return DetailsPage(
+                              image: ds["image"] ?? '',
+                              name: ds["name"] ?? '',
+                              local: ds["local"] ?? '',
+                              date: ds["date"] ?? '',
+                              time: ds["time"] ?? '',
+                              description: ds["description"] ?? '',
+                              speaker: ds["speaker"] ?? '',
+                              eventId: ds.id,
+                            );
+                          },
                         ),
-                      ),
-                    );
+                      );
+                      print('Navigation from main card successful!');
+                    } catch (e, stackTrace) {
+                      print('=== MAIN CARD NAVIGATION ERROR ===');
+                      print('Error: $e');
+                      print('Stack trace: $stackTrace');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Erro ao abrir detalhes: $e'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    }
                   },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -312,7 +406,6 @@ class _HomeState extends State<Home> {
                     ),
                     elevation: WidgetStatePropertyAll(0),
                     hintText: 'Pesquisar palestras',
-
                     controller: controller,
                     padding: const WidgetStatePropertyAll<EdgeInsets>(
                       EdgeInsets.symmetric(horizontal: 16.0),
@@ -320,72 +413,226 @@ class _HomeState extends State<Home> {
                     onTap: () {
                       controller.openView();
                     },
-                    onChanged: (_) {
+                    onChanged: (value) {
                       controller.openView();
                     },
                     leading: const Icon(Icons.search),
                   );
                 },
-                suggestionsBuilder:
-                    (BuildContext context, SearchController controller) {
-                      return List<ListTile>.generate(5, (int index) {
-                        final String item = 'item $index';
-                        return ListTile(
-                          title: Text(item),
-                          onTap: () {
-                            setState(() {
-                              controller.closeView(item);
-                            });
-                          },
-                        );
-                      });
-                    },
+                suggestionsBuilder: (BuildContext context, SearchController controller) {
+                  final searchResults = _searchEvents(controller.text);
+                  print('Search query: "${controller.text}"');
+                  print('Search results count: ${searchResults.length}');
+                  print('Total events available: ${_allEvents.length}');
+
+                  if (searchResults.isEmpty && controller.text.isNotEmpty) {
+                    return [
+                      ListTile(
+                        title: Text(
+                          'Nenhuma palestra encontrada para "${controller.text}"',
+                        ),
+                        enabled: false,
+                      ),
+                    ];
+                  }
+
+                  // If search is empty, show all events
+                  if (searchResults.isEmpty && controller.text.isEmpty) {
+                    return _allEvents.map((doc) {
+                      final data = doc.data();
+                      final name = data['name'] ?? 'Sem título';
+                      final speaker = data['speaker'] ?? '';
+                      final date = data['date'] ?? '';
+                      final time = data['time'] ?? '';
+
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.btnPrimary,
+                          child: Icon(Icons.event, color: Colors.white),
+                        ),
+                        title: Text(
+                          name,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${formatFirstAndLastName(speaker)} • $date • $time',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        onTap: () {
+                          print('=== ALL EVENTS RESULT TAPPED ===');
+                          print('Event name: $name');
+                          print('Event ID: ${doc.id}');
+                          print('Event data: $data');
+
+                          // Close the search view first
+                          controller.closeView(name);
+
+                          // Use a delayed navigation to ensure the search view is closed
+                          Future.delayed(Duration(milliseconds: 100), () {
+                            try {
+                              print('Attempting navigation...');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    print('Building DetailsPage...');
+                                    return DetailsPage(
+                                      image: data['image'] ?? '',
+                                      name: data['name'] ?? '',
+                                      local: data['local'] ?? '',
+                                      date: data['date'] ?? '',
+                                      time: data['time'] ?? '',
+                                      description: data['description'] ?? '',
+                                      speaker: data['speaker'] ?? '',
+                                      eventId: doc.id,
+                                    );
+                                  },
+                                ),
+                              );
+                              print('Navigation successful!');
+                            } catch (e, stackTrace) {
+                              print('=== NAVIGATION ERROR ===');
+                              print('Error: $e');
+                              print('Stack trace: $stackTrace');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erro ao abrir detalhes: $e'),
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            }
+                          });
+                        },
+                      );
+                    }).toList();
+                  }
+
+                  return searchResults.map((doc) {
+                    final data = doc.data();
+                    final name = data['name'] ?? 'Sem título';
+                    final speaker = data['speaker'] ?? '';
+                    final date = data['date'] ?? '';
+                    final time = data['time'] ?? '';
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.btnPrimary,
+                        child: Icon(Icons.event, color: Colors.white),
+                      ),
+                      title: Text(
+                        name,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '${formatFirstAndLastName(speaker)} • $date • $time',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      onTap: () {
+                        print('=== SEARCH RESULT TAPPED ===');
+                        print('Event name: ${data['name']}');
+                        print('Event ID: ${doc.id}');
+                        print('Event data: $data');
+
+                        // Close the search view first
+                        controller.closeView(name);
+
+                        // Use a delayed navigation to ensure the search view is closed
+                        Future.delayed(Duration(milliseconds: 100), () {
+                          try {
+                            print('Attempting navigation...');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  print('Building DetailsPage...');
+                                  return DetailsPage(
+                                    image: data['image'] ?? '',
+                                    name: data['name'] ?? '',
+                                    local: data['local'] ?? '',
+                                    date: data['date'] ?? '',
+                                    time: data['time'] ?? '',
+                                    description: data['description'] ?? '',
+                                    speaker: data['speaker'] ?? '',
+                                    eventId: doc.id,
+                                  );
+                                },
+                              ),
+                            );
+                            print('Navigation successful!');
+                          } catch (e, stackTrace) {
+                            print('=== NAVIGATION ERROR ===');
+                            print('Error: $e');
+                            print('Stack trace: $stackTrace');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erro ao abrir detalhes: $e'),
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          }
+                        });
+                      },
+                    );
+                  }).toList();
+                },
               ),
               SizedBox(height: AppSpacing.md),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 150),
-                child: CarouselView.weighted(
-                  flexWeights: [1, 1, 1],
-                  shrinkExtent: 300,
-                  consumeMaxWeight: true,
-                  children: CardInfo.values.map((CardInfo info) {
+              SizedBox(
+                height: 150,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: CardInfo.values.length,
+                  itemBuilder: (context, index) {
+                    final info = CardInfo.values[index];
                     final isActive = selectedCategoryValue == info.value;
-                    return Material(
-                      elevation: isActive ? 6.0 : 3.0,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => _applyFilter(info.value),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: info.backgroundColor,
-                            borderRadius: BorderRadius.circular(10),
-                            border: isActive
-                                ? Border.all(color: info.color, width: 2)
-                                : null,
-                          ),
-                          padding: EdgeInsets.all(15),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(info.icon, color: info.color, size: 32.0),
-                              SizedBox(height: 8),
-                              Text(
-                                info.label,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: info.color,
+                    print(
+                      'Building carousel item: ${info.label} (${info.value}) - Active: $isActive',
+                    );
+                    return Container(
+                      width: 120,
+                      margin: EdgeInsets.only(right: 12),
+                      child: Material(
+                        elevation: 0,
+                        borderRadius: BorderRadius.circular(24),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(24),
+                          onTap: () {
+                            print('=== CAROUSEL ITEM TAPPED ===');
+                            print('Tapped category: ${info.label}');
+                            print('Category value: ${info.value}');
+                            _applyFilter(info.value);
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: info.backgroundColor,
+                              borderRadius: BorderRadius.circular(24),
+                              border: isActive
+                                  ? Border.all(color: info.color, width: 2)
+                                  : null,
+                            ),
+                            padding: EdgeInsets.all(15),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(info.icon, color: info.color, size: 32.0),
+                                SizedBox(height: 8),
+                                Text(
+                                  info.label,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: info.color,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.clip,
+                                  softWrap: false,
                                 ),
-                                textAlign: TextAlign.center,
-                                overflow: TextOverflow.clip,
-                                softWrap: false,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     );
-                  }).toList(),
+                  },
                 ),
               ),
               SizedBox(height: AppSpacing.md),
@@ -400,22 +647,9 @@ class _HomeState extends State<Home> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Row(
-                    children: [
-                      if (selectedCategoryValue != null)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Chip(
-                            label: Text(labelFor(selectedCategoryValue!)),
-                            deleteIcon: const Icon(Icons.close),
-                            onDeleted: () => _applyFilter(null),
-                          ),
-                        ),
-                      TextButton(
-                        onPressed: () => _applyFilter(null),
-                        child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
-                      ),
-                    ],
+                  TextButton(
+                    onPressed: () => _applyFilter(null),
+                    child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
                   ),
                 ],
               ),
