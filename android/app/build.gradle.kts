@@ -27,7 +27,7 @@ android {
         applicationId = "com.example.compudecsi"
 
         // Kotlin DSL: use minSdk/targetSdk como propriedades
-        minSdk = flutter.minSdkVersion.toInt()
+        minSdk = 23  // Override to support Firebase Auth
         targetSdk = flutter.targetSdkVersion.toInt()
 
         // versionCode precisa ser Int; versionName é String
