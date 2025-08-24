@@ -403,25 +403,27 @@ class _UploadEventState extends State<UploadEvent> {
                     //);
                     //var downloadUrl = await (await task).ref.getDownloadURL();
                     String id = randomAlphaNumeric(10);
-                    String checkinCode = randomAlphaNumeric(
-                      6,
-                    ); // Generate 6-digit code
-                    Map<String, dynamic> uploadEvent = {
-                      "image": "", //ou usar o downloadUrl
-                      "name": nameController.text,
-                      "category": _categoryToValue(value),
-                      "description": descriptionController.text,
-                      "speaker": selectedSpeaker != null
-                          ? selectedSpeaker!["Name"]
-                          : "",
-                      "speakerImage": selectedSpeaker != null
-                          ? selectedSpeaker!["Image"]
-                          : "",
-                      "local": localController.text,
-                      "date": DateFormat('dd/MM/yyyy').format(selectedDate!),
-                      "time": formatTimeOfDay(selectedTime),
-                      "checkinCode": checkinCode, // Add the check-in code
-                    };
+                  String checkinCode = randomAlphaNumeric(
+                    6,
+                  ); // Generate 6-digit code
+                  Map<String, dynamic> uploadEvent = {
+                    "image": "", //ou usar o downloadUrl
+                    "name": nameController.text,
+                    "category": _categoryToValue(value),
+                    "description": descriptionController.text,
+                    "speaker": selectedSpeaker != null
+                        ? selectedSpeaker!["Name"]
+                        : "",
+                    "speakerImage": selectedSpeaker != null
+                        ? selectedSpeaker!["Image"]
+                        : "",
+                    "local": localController.text,
+                    "date": DateFormat('dd/MM/yyyy').format(selectedDate!),
+                    "time": formatTimeOfDay(selectedTime),
+                    // status inicial; será considerado "finalizado" quando a data exceder
+                    "status": "scheduled",
+                    "checkinCode": checkinCode, // Add the check-in code
+                  };
                     await DatabaseMethods().addEvent(uploadEvent, id).then((
                       value,
                     ) {
