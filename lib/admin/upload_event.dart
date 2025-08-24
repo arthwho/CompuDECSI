@@ -95,6 +95,29 @@ class _UploadEventState extends State<UploadEvent> {
 
   @override
   Widget build(BuildContext context) {
+    String _categoryToValue(String? category) {
+      switch (category) {
+        case 'Data Science':
+          return 'data_science';
+        case 'Criptografia':
+          return 'cryptography';
+        case 'Robótica':
+          return 'robotics';
+        case 'Inteligência Artificial':
+          return 'ai';
+        case 'Software':
+          return 'software';
+        case 'Computação':
+          return 'computing';
+        case 'Eletrônica':
+          return 'electronics';
+        case 'Telecomunicações':
+          return 'telecom';
+        default:
+          return '';
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -386,7 +409,7 @@ class _UploadEventState extends State<UploadEvent> {
                     Map<String, dynamic> uploadEvent = {
                       "image": "", //ou usar o downloadUrl
                       "name": nameController.text,
-                      "category": value,
+                      "category": _categoryToValue(value),
                       "description": descriptionController.text,
                       "speaker": selectedSpeaker != null
                           ? selectedSpeaker!["Name"]

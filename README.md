@@ -69,6 +69,11 @@ This project uses Firebase for backend services. To set up Firebase:
 
 **Important**: Never commit the actual `google-services.json` or `GoogleService-Info.plist` files to version control as they contain sensitive API keys. These files are already added to `.gitignore`.
 
+### Firestore Index (category filter)
+- Para o filtro por categoria funcionar bem, crie um índice simples no Firestore para a coleção `events` no campo `category`.
+- Acesse Firebase Console → Firestore Database → Indexes → Create Index → Single field → Collection `events` → Field `category` (Ascending) → Save.
+- Se o Firestore sugerir um link de criação de índice ao rodar a consulta pela primeira vez, basta clicar no link sugerido.
+
 ## Security Notes
 
 - Firebase configuration files containing API keys have been removed from Git history
