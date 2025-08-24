@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/admin/admin_panel.dart';
 import 'package:compudecsi/pages/detail_page.dart';
+import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/shared_pref.dart';
@@ -247,12 +248,49 @@ class _HomeState extends State<Home> {
                     children: <Widget>[
                       // Card Header
                       ListTile(
-                        title: Text(
-                          ds["name"] ?? "Sem título",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                ds["name"] ?? "Sem título",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            if (FirebaseAuth.instance.currentUser != null)
+                              FutureBuilder<bool>(
+                                future: DatabaseMethods().isUserEnrolledInEvent(
+                                  FirebaseAuth.instance.currentUser!.uid,
+                                  ds.id,
+                                ),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData &&
+                                      snapshot.data == true) {
+                                    return Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        'Inscrito',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return SizedBox.shrink();
+                                },
+                              ),
+                          ],
                         ),
                       ),
                       Padding(

@@ -32,6 +32,8 @@ class _DetailsPageState extends State<DetailsPage> {
   String? checkinCode;
   Map<String, dynamic>? _eventData;
   bool _isFinished = false;
+  bool _isEnrolled = false;
+  bool _isLoadingEnrollment = true;
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
     if (widget.eventId != null) {
       await _fetchEvent();
+      await _checkEnrollmentStatus();
     }
 
     setState(() {});
@@ -67,6 +70,81 @@ class _DetailsPageState extends State<DetailsPage> {
       }
     } catch (e) {
       print("Error fetching check-in code: $e");
+    }
+  }
+
+  Future<void> _checkEnrollmentStatus() async {
+    if (id == null || widget.eventId == null) {
+      setState(() {
+        _isLoadingEnrollment = false;
+      });
+      return;
+    }
+
+    try {
+      bool enrolled = await DatabaseMethods().isUserEnrolledInEvent(
+        id!,
+        widget.eventId!,
+      );
+      setState(() {
+        _isEnrolled = enrolled;
+        _isLoadingEnrollment = false;
+      });
+    } catch (e) {
+      print("Error checking enrollment status: $e");
+      setState(() {
+        _isLoadingEnrollment = false;
+      });
+    }
+  }
+
+  Future<void> _enrollInEvent() async {
+    if (id == null || widget.eventId == null) return;
+
+    try {
+      await DatabaseMethods().enrollUserInEvent(id!, widget.eventId!);
+      setState(() {
+        _isEnrolled = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Inscrição realizada com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao realizar inscrição. Tente novamente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      print("Error enrolling in event: $e");
+    }
+  }
+
+  Future<void> _unenrollFromEvent() async {
+    if (id == null || widget.eventId == null) return;
+
+    try {
+      await DatabaseMethods().unenrollUserFromEvent(id!, widget.eventId!);
+      setState(() {
+        _isEnrolled = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Inscrição cancelada com sucesso!'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao cancelar inscrição. Tente novamente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      print("Error unenrolling from event: $e");
     }
   }
 
@@ -183,7 +261,11 @@ class _DetailsPageState extends State<DetailsPage> {
                     SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.event_available, color: AppColors.purple, size: 20),
+                        Icon(
+                          Icons.event_available,
+                          color: AppColors.purple,
+                          size: 20,
+                        ),
                         SizedBox(width: 6),
                         Text(
                           'Evento finalizado',
@@ -284,7 +366,12 @@ class _DetailsPageState extends State<DetailsPage> {
               ),
             ),
             // Action buttons
-            if (_isFinished)
+            if (_isLoadingEnrollment)
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_isFinished)
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: FilledButton(
@@ -309,11 +396,11 @@ class _DetailsPageState extends State<DetailsPage> {
                   ),
                 ),
               )
-            else
+            else if (!_isEnrolled)
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: FilledButton(
-                  onPressed: () {},
+                  onPressed: _enrollInEvent,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.purple,
                   ),
@@ -323,75 +410,99 @@ class _DetailsPageState extends State<DetailsPage> {
                   ),
                 ),
               ),
-            Container(
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [AppColors.red, AppColors.purple],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+            // Q&A and Check-in buttons (only show when enrolled)
+            if (_isEnrolled && !_isLoadingEnrollment)
+              Container(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [AppColors.red, AppColors.purple],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(100),
                             ),
+                            child: FilledButton(
+                              onPressed: _isFinished
+                                  ? null
+                                  : () {
+                                      final sessionId =
+                                          widget.eventId ??
+                                          widget.name.trim().toLowerCase();
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => QAPage(
+                                            sessionId: sessionId,
+                                            sessionTitle:
+                                                'Q&A — ' + widget.name,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: Text(
+                                _isFinished
+                                    ? 'Q&A indisponível (finalizado)'
+                                    : 'Participar do Q&A',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: OutlinedButton(
+                        onPressed: _isFinished ? null : _showCodeInputDialog,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.purple,
+                          side: BorderSide(color: AppColors.purple, width: 2),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(100),
                           ),
-                          child: FilledButton(
-                            onPressed: _isFinished
-                                ? null
-                                : () {
-                                    final sessionId = widget.eventId ??
-                                        widget.name.trim().toLowerCase();
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => QAPage(
-                                          sessionId: sessionId,
-                                          sessionTitle: 'Q&A — ' + widget.name,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: Text(
-                              _isFinished
-                                  ? 'Q&A indisponível (finalizado)'
-                                  : 'Participar do Q&A',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                        ),
+                        child: Text(
+                          _isFinished
+                              ? 'Check-in indisponível (finalizado)'
+                              : 'Fazer checkin',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: OutlinedButton(
+                        onPressed: _unenrollFromEvent,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: BorderSide(color: Colors.red, width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.md),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: OutlinedButton(
-                      onPressed: _isFinished ? null : _showCodeInputDialog,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.purple,
-                        side: BorderSide(color: AppColors.purple, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+                        child: const Text(
+                          'Cancelar inscrição',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      child: Text(
-                        _isFinished ? 'Check-in indisponível (finalizado)' : 'Fazer checkin',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
