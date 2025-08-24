@@ -1,6 +1,7 @@
 import 'package:compudecsi/pages/bottom_nav.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/services/shared_pref.dart';
+import 'package:compudecsi/services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -57,14 +58,13 @@ class AuthMethods {
       await SharedpreferenceHelper().saveUserImage(userDetails.photoURL!);
 
       if (result.user != null) {
-        Map<String, dynamic> userInfoMap = {
-          "Name": userDetails?.displayName,
-          "Image": userDetails?.photoURL,
-          "Email": userDetails?.email,
-          "id": userDetails?.uid,
-        };
-
-        await DatabaseMethods().addUserDetail(userInfoMap, userDetails!.uid);
+        // Ensure user doc exists with default role without overwriting role if present
+        await UserService().ensureUserOnSignIn(
+          uid: userDetails.uid,
+          name: userDetails.displayName,
+          email: userDetails.email,
+          image: userDetails.photoURL,
+        );
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(

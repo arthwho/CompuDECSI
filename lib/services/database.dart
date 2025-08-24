@@ -5,7 +5,7 @@ class DatabaseMethods {
     return await FirebaseFirestore.instance
         .collection("users")
         .doc(id)
-        .set(userInfoMap);
+        .set(userInfoMap, SetOptions(merge: true));
   }
 
   Future addEvent(Map<String, dynamic> userInfoMap, String id) async {
