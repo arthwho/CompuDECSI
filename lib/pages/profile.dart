@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/pages/onboarding_page.dart';
+import 'package:animated_emoji/animated_emoji.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -18,6 +19,7 @@ class _ProfileState extends State<Profile> {
   String? userEmail;
   String? userImage;
   String? userRole;
+  String selectedEmoji = 'alienMonster'; // Default emoji
 
   @override
   void initState() {
@@ -50,6 +52,131 @@ class _ProfileState extends State<Profile> {
           userRole = 'student';
         });
       }
+    }
+
+    // Load emoji preference
+    await _loadEmojiPreference();
+  }
+
+  Future<void> _loadEmojiPreference() async {
+    final emoji = await SharedpreferenceHelper().getUserEmoji();
+    if (emoji != null && emoji.isNotEmpty) {
+      setState(() {
+        selectedEmoji = emoji;
+      });
+    }
+  }
+
+  Future<void> _saveEmojiPreference(String emoji) async {
+    await SharedpreferenceHelper().saveUserEmoji(emoji);
+    setState(() {
+      selectedEmoji = emoji;
+    });
+  }
+
+  void _showEmojiSelectionDialog() {
+    final List<Map<String, dynamic>> availableEmojis = [
+      {'name': 'Alien Monster', 'value': 'alienMonster'},
+      {'name': 'Rocket', 'value': 'rocket'},
+      {'name': 'Robot', 'value': 'robot'},
+      {'name': 'Fire', 'value': 'fire'},
+      {'name': 'Thumbs Up', 'value': 'thumbsUp'},
+      {'name': 'Party Popper', 'value': 'partyPopper'},
+    ];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('Escolher Emoji'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 300,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: availableEmojis.length,
+              itemBuilder: (context, index) {
+                final emoji = availableEmojis[index];
+                final isSelected = selectedEmoji == emoji['value'];
+
+                return InkWell(
+                  onTap: () {
+                    _saveEmojiPreference(emoji['value']);
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Emoji alterado para ${emoji['name']}!'),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.accent : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      border: isSelected
+                          ? Border.all(color: AppColors.primary, width: 2)
+                          : null,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedEmoji(
+                          _getAnimatedEmoji(emoji['value']),
+                          size: 32,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          emoji['name'],
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected ? Colors.white : Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  AnimatedEmojiData _getAnimatedEmoji(String emojiValue) {
+    switch (emojiValue) {
+      case 'alienMonster':
+        return AnimatedEmojis.alienMonster;
+      case 'rocket':
+        return AnimatedEmojis.rocket;
+      case 'robot':
+        return AnimatedEmojis.robot;
+      case 'fire':
+        return AnimatedEmojis.fire;
+      case 'thumbsUp':
+        return AnimatedEmojis.thumbsUp;
+      case 'partyPopper':
+        return AnimatedEmojis.partyPopper;
+      default:
+        return AnimatedEmojis.alienMonster;
     }
   }
 
@@ -275,6 +402,19 @@ class _ProfileState extends State<Profile> {
                           content: Text('Funcionalidade em desenvolvimento'),
                         ),
                       );
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: AnimatedEmoji(
+                      _getAnimatedEmoji(selectedEmoji),
+                      size: 24,
+                    ),
+                    title: const Text('Alterar Emoji'),
+                    subtitle: const Text('Personalizar emoji do perfil'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () {
+                      _showEmojiSelectionDialog();
                     },
                   ),
                 ],
