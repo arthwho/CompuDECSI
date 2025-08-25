@@ -25,6 +25,7 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
+        freeCompilerArgs += listOf("-Xno-incremental-compilation")
     }
 
     defaultConfig {
@@ -62,13 +63,13 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
-            // Enable code obfuscation and optimization
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            // Temporarily disable code obfuscation to fix build issues
+            isMinifyEnabled = false
+            isShrinkResources = false
+            // proguardFiles(
+            //     getDefaultProguardFile("proguard-android-optimize.txt"),
+            //     "proguard-rules.pro"
+            // )
         }
         debug {
             // configs opcionais para debug
