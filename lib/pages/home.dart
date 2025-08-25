@@ -215,12 +215,9 @@ class _HomeState extends State<Home> {
 
     setState(() {
       selectedCategoryValue = value;
-      eventStream = (value == null)
-          ? FirebaseFirestore.instance.collection('events').snapshots()
-          : FirebaseFirestore.instance
-                .collection('events')
-                .where('category', isEqualTo: value)
-                .snapshots();
+      // Keep a single stream of all events; apply filter client-side to
+      // tolerate legacy records where 'category' may store the display name.
+      eventStream = FirebaseFirestore.instance.collection('events').snapshots();
     });
 
     if (!mounted) return;
@@ -260,7 +257,33 @@ class _HomeState extends State<Home> {
 
         // Update the all events list for search functionality
         _allEvents = snapshot.data!.docs;
-        final docs = snapshot.data!.docs;
+        List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+            snapshot.data!.docs;
+        // Apply client-side category filter to handle legacy data where
+        // 'category' may contain either the slug value or the display name.
+        if (selectedCategoryValue != null) {
+          final selectedValue = selectedCategoryValue!;
+          // derive display label for fallback comparison
+          String? displayLabel;
+          try {
+            displayLabel = labelFor(selectedValue);
+          } catch (_) {
+            displayLabel = null;
+          }
+          String norm(String? s) => (s ?? '').trim().toLowerCase();
+          final normValue = norm(selectedValue);
+          final normLabel = norm(displayLabel);
+          docs = docs.where((d) {
+            final data = d.data();
+            final stored = norm(data['category']?.toString());
+            // Also check alternative legacy keys just in case
+            final stored2 = norm(data['categoria']?.toString());
+            return stored == normValue ||
+                stored == normLabel ||
+                stored2 == normValue ||
+                stored2 == normLabel;
+          }).toList();
+        }
         print('Updated _allEvents with ${_allEvents.length} events');
         if (_allEvents.isNotEmpty) {
           print('First event: ${_allEvents.first.data()['name']}');
@@ -275,6 +298,22 @@ class _HomeState extends State<Home> {
             );
           }
         }
+        if (docs.isEmpty) {
+          final sem = 'Nenhuma palestra encontrada';
+          final comp = (selectedCategoryValue != null)
+              ? ' para "${labelFor(selectedCategoryValue!)}"'
+              : '';
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Center(
+              child: Text(
+                sem + comp,
+                style: const TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+            ),
+          );
+        }
+
         return ListView.builder(
           padding: EdgeInsets.zero,
           shrinkWrap: true,
