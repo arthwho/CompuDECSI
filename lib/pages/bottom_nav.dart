@@ -54,6 +54,8 @@ class _BottomNavState extends State<BottomNav> {
         final role = snap.data?.data()?['role'] as String? ?? 'student';
         final userImage = snap.data?.data()?['Image'] as String?;
         final isAdmin = role == 'admin';
+        final isSpeaker = role == 'speaker';
+        final hasAdminAccess = isAdmin || isSpeaker;
         final tabs = _buildTabs(isAdmin: isAdmin, userImage: userImage);
         // Clamp index if tabs changed (e.g., admin -> non-admin)
         if (currentIndex >= tabs.length) currentIndex = tabs.length - 1;
@@ -87,7 +89,7 @@ class _BottomNavState extends State<BottomNav> {
             }).toList(),
           ),
           body: tabs[currentIndex].page,
-          floatingActionButton: isAdmin
+          floatingActionButton: hasAdminAccess
               ? FloatingActionButton.extended(
                   onPressed: () {
                     Navigator.push(
@@ -95,8 +97,12 @@ class _BottomNavState extends State<BottomNav> {
                       MaterialPageRoute(builder: (_) => const AdminPanel()),
                     );
                   },
-                  icon: const Icon(Icons.admin_panel_settings),
-                  label: const Text('Admin'),
+                  icon: Icon(
+                    isAdmin
+                        ? Icons.admin_panel_settings
+                        : Icons.add_circle_outline,
+                  ),
+                  label: Text(isAdmin ? 'Admin' : 'Criar Palestra'),
                 )
               : null,
         );
