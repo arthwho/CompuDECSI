@@ -8,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:random_string/random_string.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:compudecsi/services/category_service.dart';
 
 class UploadEvent extends StatefulWidget {
   const UploadEvent({super.key});
@@ -20,16 +21,7 @@ class _UploadEventState extends State<UploadEvent> {
   TextEditingController nameController = new TextEditingController();
   TextEditingController descriptionController = new TextEditingController();
   TextEditingController localController = new TextEditingController();
-  final List<String> eventCategory = [
-    'Data Science',
-    'Criptografia',
-    'Robótica',
-    'Inteligência Artificial',
-    'Software',
-    'Computação',
-    'Eletrônica',
-    'Telecomunicações',
-  ];
+  List<String> eventCategory = [];
   String? value;
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
@@ -40,6 +32,7 @@ class _UploadEventState extends State<UploadEvent> {
   void initState() {
     super.initState();
     fetchUsers();
+    fetchCategories();
   }
 
   Future<void> fetchUsers() async {
@@ -51,6 +44,30 @@ class _UploadEventState extends State<UploadEvent> {
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
     });
+  }
+
+  Future<void> fetchCategories() async {
+    try {
+      final categories = await CategoryService.getCategoryNames();
+      setState(() {
+        eventCategory = categories;
+      });
+    } catch (e) {
+      print('Error fetching categories: $e');
+      // Fallback to default categories if fetch fails
+      setState(() {
+        eventCategory = [
+          'Data Science',
+          'Criptografia',
+          'Robótica',
+          'Inteligência Artificial',
+          'Software',
+          'Computação',
+          'Eletrônica',
+          'Telecomunicações',
+        ];
+      });
+    }
   }
 
   Future getImage() async {
@@ -95,27 +112,9 @@ class _UploadEventState extends State<UploadEvent> {
 
   @override
   Widget build(BuildContext context) {
-    String _categoryToValue(String? category) {
-      switch (category) {
-        case 'Data Science':
-          return 'data_science';
-        case 'Criptografia':
-          return 'cryptography';
-        case 'Robótica':
-          return 'robotics';
-        case 'Inteligência Artificial':
-          return 'ai';
-        case 'Software':
-          return 'software';
-        case 'Computação':
-          return 'computing';
-        case 'Eletrônica':
-          return 'electronics';
-        case 'Telecomunicações':
-          return 'telecom';
-        default:
-          return '';
-      }
+    Future<String> _categoryToValue(String? category) async {
+      if (category == null || category.isEmpty) return '';
+      return await CategoryService.nameToValue(category);
     }
 
     return Scaffold(
@@ -399,10 +398,14 @@ class _UploadEventState extends State<UploadEvent> {
                     String checkinCode = randomAlphaNumeric(
                       6,
                     ); // Generate 6-digit code
+
+                    // Get category value asynchronously
+                    String categoryValue = await _categoryToValue(value);
+
                     Map<String, dynamic> uploadEvent = {
                       "image": "", //ou usar o downloadUrl
                       "name": nameController.text,
-                      "category": _categoryToValue(value),
+                      "category": categoryValue,
                       "description": descriptionController.text,
                       "speaker": selectedSpeaker != null
                           ? selectedSpeaker!["Name"]

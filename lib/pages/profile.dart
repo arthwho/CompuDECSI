@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/utils/variables.dart';
-import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/pages/onboarding_page.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -85,11 +85,12 @@ class _ProfileState extends State<Profile> {
       // Sign out from Firebase
       await FirebaseAuth.instance.signOut();
 
-      // Navigate to login page (you might need to adjust this based on your navigation structure)
+      // Navigate to onboarding page
       if (mounted) {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const Onboarding()),
+          (route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -108,6 +109,7 @@ class _ProfileState extends State<Profile> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColors.white,
           title: const Text('Confirmar Logout'),
           content: const Text('Tem certeza que deseja sair da sua conta?'),
           actions: [
@@ -198,7 +200,7 @@ class _ProfileState extends State<Profile> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.purpleDark,
+                color: AppColors.accent,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
