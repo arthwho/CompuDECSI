@@ -4,6 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/pages/onboarding_page.dart';
+import 'package:compudecsi/pages/privacy_policy_page.dart';
+import 'package:compudecsi/pages/terms_of_use_page.dart';
+import 'package:compudecsi/pages/notification_settings_page.dart';
 import 'package:animated_emoji/animated_emoji.dart';
 
 class Profile extends StatefulWidget {
@@ -343,15 +346,17 @@ class _ProfileState extends State<Profile> {
             SizedBox(height: AppSpacing.lg),
 
             // Profile Options
-            Card(
-              elevation: 2,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.grey.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 children: [
-                  ListTile(
+                  /* ListTile(
                     leading: Icon(
                       Icons.person_outline,
                       color: AppColors.purpleDark,
@@ -368,7 +373,7 @@ class _ProfileState extends State<Profile> {
                       );
                     },
                   ),
-                  const Divider(height: 1),
+                  const Divider(height: 1), */
                   ListTile(
                     leading: Icon(
                       Icons.notifications_outlined,
@@ -378,15 +383,15 @@ class _ProfileState extends State<Profile> {
                     subtitle: const Text('Configurar preferências'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
-                      // TODO: Implement notifications settings
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Funcionalidade em desenvolvimento'),
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const NotificationSettingsPage(),
                         ),
                       );
                     },
                   ),
-                  const Divider(height: 1),
+                  /* const Divider(height: 1),
                   ListTile(
                     leading: Icon(
                       Icons.help_outline,
@@ -403,7 +408,7 @@ class _ProfileState extends State<Profile> {
                         ),
                       );
                     },
-                  ),
+                  ), */
                   const Divider(height: 1),
                   ListTile(
                     leading: AnimatedEmoji(
@@ -420,7 +425,43 @@ class _ProfileState extends State<Profile> {
                 ],
               ),
             ),
-
+            SizedBox(height: AppSpacing.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPolicyPage(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Política de Privacidade',
+                    style: TextStyle(color: AppColors.grey),
+                  ),
+                ),
+                Container(
+                  height: 20,
+                  width: 1,
+                  color: AppColors.grey.withValues(alpha: 0.3),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const TermsOfUsePage(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Termos de Uso',
+                    style: TextStyle(color: AppColors.grey),
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: AppSpacing.lg),
 
             // Logout Button
