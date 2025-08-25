@@ -6,6 +6,7 @@ class SharedpreferenceHelper {
   static String userEmailKey = "USEREMAILKEY";
   static String userImageKey = "USERIMAGEKEY";
   static String userEmojiKey = "USEREMOJIKEY";
+  static String termsAcceptedKey = "TERMSACCEPTEDKEY";
 
   Future<bool> saveUserId(String getUserId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -55,5 +56,15 @@ class SharedpreferenceHelper {
   Future<String?> getUserEmoji() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(userEmojiKey);
+  }
+
+  Future<bool> saveTermsAccepted(bool accepted) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setBool(termsAcceptedKey, accepted);
+  }
+
+  Future<bool?> getTermsAccepted() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(termsAcceptedKey);
   }
 }

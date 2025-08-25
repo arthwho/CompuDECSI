@@ -106,12 +106,6 @@ class _HomeState extends State<Home> {
       setState(() {
         categories = newCategories;
       });
-
-      // Debug: Print all valid category values
-      print('=== VALID CATEGORY VALUES ===');
-      for (final cardInfo in categories) {
-        print('${cardInfo.label} -> ${cardInfo.value}');
-      }
     } catch (e) {
       print('Error fetching categories: $e');
       // Fallback to default categories
@@ -287,16 +281,6 @@ class _HomeState extends State<Home> {
         print('Updated _allEvents with ${_allEvents.length} events');
         if (_allEvents.isNotEmpty) {
           print('First event: ${_allEvents.first.data()['name']}');
-
-          // Debug: Print all events and their categories
-          print('=== ALL EVENTS DEBUG ===');
-          for (int i = 0; i < docs.length; i++) {
-            final event = docs[i];
-            final data = event.data();
-            print(
-              'Event ${i + 1}: ${data['name']} - Category: ${data['category']}',
-            );
-          }
         }
         if (docs.isEmpty) {
           final sem = 'Nenhuma palestra encontrada';

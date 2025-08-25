@@ -39,10 +39,19 @@ class _UploadEventState extends State<UploadEvent> {
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('users')
         .get();
+
+    // Filter users to only include admin and speaker roles
+    List<Map<String, dynamic>> allUsers = snapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
+
+    List<Map<String, dynamic>> eligibleSpeakers = allUsers.where((user) {
+      String? role = user['role'] as String?;
+      return role == 'admin' || role == 'speaker';
+    }).toList();
+
     setState(() {
-      users = snapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
+      users = eligibleSpeakers;
     });
   }
 
@@ -350,7 +359,9 @@ class _UploadEventState extends State<UploadEvent> {
                         selectedSpeaker = value;
                       });
                     },
-                    hint: Text('Selecione o palestrante'),
+                    hint: Text(
+                      'Selecione o palestrante (apenas admins e palestrantes)',
+                    ),
                   ),
                 ),
               ),

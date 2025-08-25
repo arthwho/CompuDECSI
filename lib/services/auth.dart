@@ -2,6 +2,7 @@ import 'package:compudecsi/pages/bottom_nav.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/services/user_service.dart';
+import 'package:compudecsi/utils/terms_acceptance_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -17,6 +18,17 @@ class AuthMethods {
 
   signInWithGoogle(BuildContext context) async {
     try {
+      // Check if user has already accepted terms
+      final termsAccepted = await SharedpreferenceHelper().getTermsAccepted();
+
+      if (termsAccepted != true) {
+        // Show terms acceptance dialog
+        final accepted = await _showTermsAcceptanceDialog(context);
+        if (!accepted) {
+          return; // User didn't accept terms
+        }
+      }
+
       // Check if user is already signed in
       if (await _googleSignIn.isSignedIn()) {
         await _googleSignIn.signOut();
@@ -101,5 +113,26 @@ class AuthMethods {
   signOut() async {
     await auth.signOut();
     await _googleSignIn.signOut();
+  }
+
+  // Show terms acceptance dialog
+  Future<bool> _showTermsAcceptanceDialog(BuildContext context) async {
+    bool accepted = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return TermsAcceptanceDialog(
+          onAccept: () async {
+            // Save that user accepted terms
+            await SharedpreferenceHelper().saveTermsAccepted(true);
+            accepted = true;
+          },
+        );
+      },
+    );
+
+    return accepted;
   }
 }

@@ -3,6 +3,7 @@ import 'package:compudecsi/pages/qa_page.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/services/event_service.dart';
 import 'package:compudecsi/pages/feedback_page.dart';
+import 'package:compudecsi/services/notification_service.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
@@ -119,6 +120,10 @@ class _DetailsPageState extends State<DetailsPage> {
         _isEnrolled = true;
         _enrollmentCode = code;
       });
+
+      // Schedule notification for the event
+      await _scheduleEventNotification();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Inscrição realizada com sucesso!'),
@@ -133,6 +138,101 @@ class _DetailsPageState extends State<DetailsPage> {
         ),
       );
       print("Error enrolling in event: $e");
+    }
+  }
+
+  Future<void> _scheduleEventNotification() async {
+    if (widget.eventId == null) return;
+
+    try {
+      print('=== DETAIL PAGE NOTIFICATION DEBUG ===');
+      print('Event ID: ${widget.eventId}');
+      print('Event Name: ${widget.name}');
+      print('Event Date: ${widget.date}');
+      print('Event Time: ${widget.time}');
+
+      // Parse event date and time
+      final eventDateTime = _parseEventDateTime(widget.date, widget.time);
+      print('Parsed DateTime: $eventDateTime');
+
+      if (eventDateTime != null) {
+        print('About to call NotificationService.scheduleEventNotification...');
+
+        await NotificationService().scheduleEventNotification(
+          eventId: widget.eventId!,
+          eventTitle: widget.name,
+          eventLocation: widget.local,
+          eventDateTime: eventDateTime,
+          eventDescription: widget.description,
+        );
+
+        print('✅ Notification scheduled for event: ${widget.name}');
+
+        // Verify the notification was actually scheduled
+        final pendingNotifications = await NotificationService()
+            .getPendingNotifications();
+        print('=== VERIFICATION ===');
+        print(
+          'Total pending notifications after scheduling: ${pendingNotifications.length}',
+        );
+        for (var notification in pendingNotifications) {
+          print(
+            'Pending notification: ID=${notification.id}, Title=${notification.title}',
+          );
+        }
+      } else {
+        print('❌ Failed to parse event date/time');
+      }
+    } catch (e) {
+      print('❌ Error scheduling notification: $e');
+      print('Stack trace: ${StackTrace.current}');
+    }
+  }
+
+  DateTime? _parseEventDateTime(String date, String time) {
+    try {
+      print('=== DATE PARSING DEBUG ===');
+      print('Input date: "$date"');
+      print('Input time: "$time"');
+
+      // Parse date (assuming format like "15/12/2024")
+      final dateParts = date.split('/');
+      print('Date parts: $dateParts');
+      if (dateParts.length != 3) {
+        print(
+          '❌ Invalid date format - expected 3 parts, got ${dateParts.length}',
+        );
+        return null;
+      }
+
+      final day = int.parse(dateParts[0]);
+      final month = int.parse(dateParts[1]);
+      final year = int.parse(dateParts[2]);
+      print('Parsed date: day=$day, month=$month, year=$year');
+
+      // Parse time (assuming format like "14:30")
+      final timeParts = time.split(':');
+      print('Time parts: $timeParts');
+      if (timeParts.length != 2) {
+        print(
+          '❌ Invalid time format - expected 2 parts, got ${timeParts.length}',
+        );
+        return null;
+      }
+
+      final hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      print('Parsed time: hour=$hour, minute=$minute');
+
+      // Create DateTime in local timezone (Brazil)
+      final result = DateTime(year, month, day, hour, minute);
+      print('✅ Final DateTime: $result');
+      print('DateTime timezone: ${result.timeZoneName}');
+      print('DateTime is UTC: ${result.isUtc}');
+      return result;
+    } catch (e) {
+      print('❌ Error parsing date/time: $e');
+      return null;
     }
   }
 
@@ -251,6 +351,10 @@ class _DetailsPageState extends State<DetailsPage> {
       setState(() {
         _isEnrolled = false;
       });
+
+      // Cancel the scheduled notification for this event
+      await NotificationService().cancelEventNotification(widget.eventId!);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Inscrição cancelada com sucesso!'),
@@ -506,6 +610,9 @@ class _DetailsPageState extends State<DetailsPage> {
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.btnPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     'Avaliar evento',
@@ -546,7 +653,7 @@ class _DetailsPageState extends State<DetailsPage> {
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
                               ),
-                              borderRadius: BorderRadius.circular(100),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: FilledButton(
                               onPressed: _isFinished
@@ -586,6 +693,9 @@ class _DetailsPageState extends State<DetailsPage> {
                       child: OutlinedButton(
                         onPressed: _isFinished ? null : _showCodeInputDialog,
                         style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           foregroundColor: AppColors.purple,
                           side: BorderSide(color: AppColors.purple, width: 2),
                         ),
@@ -604,6 +714,9 @@ class _DetailsPageState extends State<DetailsPage> {
                         onPressed: _unenrollFromEvent,
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.destructive,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text(
                           'Cancelar inscrição',

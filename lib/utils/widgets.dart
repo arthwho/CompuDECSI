@@ -187,7 +187,7 @@ class GoogleSignInButton extends StatelessWidget {
           end: Alignment.centerRight,
         ),
         // Match the button's shape for smooth corners.
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: FilledButton(
         onPressed: onPressed,
