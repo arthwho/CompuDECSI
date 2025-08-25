@@ -275,7 +275,7 @@ class _HomeState extends State<Home> {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary,
+                                        color: AppColors.accent,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
@@ -700,29 +700,6 @@ class _HomeState extends State<Home> {
           ),
         ),
       ),
-      floatingActionButton: currentUser == null
-          ? null
-          : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(currentUser.uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const SizedBox.shrink();
-                final role = snapshot.data!.data()?['role'] as String?;
-                if (role != 'admin') return const SizedBox.shrink();
-                return FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const AdminPanel()),
-                    );
-                  },
-                  icon: const Icon(Icons.admin_panel_settings),
-                  label: const Text('Admin'),
-                );
-              },
-            ),
     );
   }
 }
