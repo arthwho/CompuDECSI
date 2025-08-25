@@ -30,6 +30,7 @@ class _HomeState extends State<Home> {
   Stream<QuerySnapshot<Map<String, dynamic>>>? eventStream;
   String? selectedCategoryValue; // slug canônico (ex.: "ai")
   String? userName;
+  String selectedEmoji = 'alienMonster'; // Default emoji
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _allEvents =
       []; // Store all events for search
   List<CardInfo> categories = []; // Dynamic categories from Firestore
@@ -53,8 +54,37 @@ class _HomeState extends State<Home> {
     eventStream = FirebaseFirestore.instance.collection('events').snapshots();
     userName = await SharedpreferenceHelper().getUserName();
     await fetchCategories();
+    await _loadEmojiPreference();
 
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadEmojiPreference() async {
+    final emoji = await SharedpreferenceHelper().getUserEmoji();
+    if (emoji != null && emoji.isNotEmpty) {
+      setState(() {
+        selectedEmoji = emoji;
+      });
+    }
+  }
+
+  AnimatedEmojiData _getAnimatedEmoji(String emojiValue) {
+    switch (emojiValue) {
+      case 'alienMonster':
+        return AnimatedEmojis.alienMonster;
+      case 'rocket':
+        return AnimatedEmojis.rocket;
+      case 'robot':
+        return AnimatedEmojis.robot;
+      case 'fire':
+        return AnimatedEmojis.fire;
+      case 'thumbsUp':
+        return AnimatedEmojis.thumbsUp;
+      case 'partyPopper':
+        return AnimatedEmojis.partyPopper;
+      default:
+        return AnimatedEmojis.alienMonster;
+    }
   }
 
   Future<void> fetchCategories() async {
@@ -487,7 +517,7 @@ class _HomeState extends State<Home> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  AnimatedEmoji(AnimatedEmojis.alienMonster, size: 32),
+                  AnimatedEmoji(_getAnimatedEmoji(selectedEmoji), size: 32),
                 ],
               ),
               SizedBox(height: AppSpacing.sm),
