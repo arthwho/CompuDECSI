@@ -1,6 +1,7 @@
 import 'package:compudecsi/admin/manage_users.dart';
 import 'package:compudecsi/admin/feedback_dashboard.dart';
 import 'package:compudecsi/admin/upload_event.dart';
+import 'package:compudecsi/admin/manage_categories.dart';
 import 'package:compudecsi/utils/role_guard.dart';
 import 'package:flutter/material.dart';
 
@@ -50,6 +51,18 @@ class AdminPanel extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const UploadEvent()),
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.category),
+                title: const Text('Gerenciar categorias'),
+                subtitle: const Text('Adicionar, editar ou remover categorias'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ManageCategoriesPage(),
+                  ),
                 ),
               ),
             ],

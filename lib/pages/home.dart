@@ -7,17 +7,9 @@ import 'package:compudecsi/utils/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:animated_emoji/animated_emoji.dart';
+import 'package:compudecsi/services/category_service.dart';
 
-enum CardInfo {
-  dataScience('Data Science', 'Data Science', Icons.analytics),
-  cryptography('Criptografia', 'Criptografia', Icons.security),
-  robotics('Robótica', 'Robótica', Icons.smart_toy),
-  ai('Inteligência\n Artificial', 'Inteligência Artificial', Icons.psychology),
-  software('Software', 'Software', Icons.code),
-  computing('Computação', 'Computação', Icons.computer),
-  electronics('Eletrônica', 'Eletrônica', Icons.electric_bolt),
-  telecom('Redes', 'Redes', Icons.signal_cellular_alt);
-
+class CardInfo {
   const CardInfo(this.label, this.value, this.icon);
   final String label; // Texto para UI
   final String value; // Valor canônico salvo no Firestore (category)
@@ -40,6 +32,7 @@ class _HomeState extends State<Home> {
   String? userName;
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _allEvents =
       []; // Store all events for search
+  List<CardInfo> categories = []; // Dynamic categories from Firestore
 
   String formatFirstAndLastName(String? fullName) {
     if (fullName == null || fullName.trim().isEmpty) return '';
@@ -59,14 +52,79 @@ class _HomeState extends State<Home> {
   Future<void> onTheLoad() async {
     eventStream = FirebaseFirestore.instance.collection('events').snapshots();
     userName = await SharedpreferenceHelper().getUserName();
-
-    // Debug: Print all valid category values
-    print('=== VALID CATEGORY VALUES ===');
-    for (final cardInfo in CardInfo.values) {
-      print('${cardInfo.label} -> ${cardInfo.value}');
-    }
+    await fetchCategories();
 
     if (mounted) setState(() {});
+  }
+
+  Future<void> fetchCategories() async {
+    try {
+      final categoriesData = await CategoryService.getCategories();
+      final List<CardInfo> newCategories = [];
+
+      for (final category in categoriesData) {
+        final icon = _getIconForCategory(category['icon'] as String);
+        newCategories.add(
+          CardInfo(
+            category['name'] as String,
+            category['value'] as String,
+            icon,
+          ),
+        );
+      }
+
+      setState(() {
+        categories = newCategories;
+      });
+
+      // Debug: Print all valid category values
+      print('=== VALID CATEGORY VALUES ===');
+      for (final cardInfo in categories) {
+        print('${cardInfo.label} -> ${cardInfo.value}');
+      }
+    } catch (e) {
+      print('Error fetching categories: $e');
+      // Fallback to default categories
+      setState(() {
+        categories = [
+          const CardInfo('Data Science', 'data_science', Icons.analytics),
+          const CardInfo('Criptografia', 'cryptography', Icons.security),
+          const CardInfo('Robótica', 'robotics', Icons.smart_toy),
+          const CardInfo('Inteligência Artificial', 'ai', Icons.psychology),
+          const CardInfo('Software', 'software', Icons.code),
+          const CardInfo('Computação', 'computing', Icons.computer),
+          const CardInfo('Eletrônica', 'electronics', Icons.electric_bolt),
+          const CardInfo(
+            'Telecomunicações',
+            'telecom',
+            Icons.signal_cellular_alt,
+          ),
+        ];
+      });
+    }
+  }
+
+  IconData _getIconForCategory(String iconName) {
+    switch (iconName) {
+      case 'analytics':
+        return Icons.analytics;
+      case 'security':
+        return Icons.security;
+      case 'smart_toy':
+        return Icons.smart_toy;
+      case 'psychology':
+        return Icons.psychology;
+      case 'code':
+        return Icons.code;
+      case 'computer':
+        return Icons.computer;
+      case 'electric_bolt':
+        return Icons.electric_bolt;
+      case 'signal_cellular_alt':
+        return Icons.signal_cellular_alt;
+      default:
+        return Icons.category;
+    }
   }
 
   // Method to search events
@@ -104,7 +162,7 @@ class _HomeState extends State<Home> {
   }
 
   String labelFor(String value) {
-    return CardInfo.values
+    return categories
         .firstWhere((c) => c.value == value)
         .label
         .replaceAll('\n', ' ');
@@ -622,9 +680,9 @@ class _HomeState extends State<Home> {
                 height: 150,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: CardInfo.values.length,
+                  itemCount: categories.length,
                   itemBuilder: (context, index) {
-                    final info = CardInfo.values[index];
+                    final info = categories[index];
                     final isActive = selectedCategoryValue == info.value;
                     print(
                       'Building carousel item: ${info.label} (${info.value}) - Active: $isActive',
@@ -662,10 +720,11 @@ class _HomeState extends State<Home> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: info.color,
+                                    fontSize: 12,
                                   ),
                                   textAlign: TextAlign.center,
-                                  overflow: TextOverflow.clip,
-                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
                                 ),
                               ],
                             ),
