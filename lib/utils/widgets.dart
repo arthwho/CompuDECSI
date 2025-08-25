@@ -295,7 +295,7 @@ class _CodeInputDialogState extends State<CodeInputDialog> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Digite o código de 6 dígitos fornecido pelo palestrante:',
+                'Digite seu código de inscrição de 6 dígitos:',
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
               const SizedBox(height: 24),

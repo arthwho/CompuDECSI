@@ -6,6 +6,7 @@ import 'package:compudecsi/pages/feedback_page.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // ignore: must_be_immutable
@@ -32,6 +33,7 @@ class DetailsPage extends StatefulWidget {
 class _DetailsPageState extends State<DetailsPage> {
   String? id, name, image;
   String? checkinCode;
+  String? _enrollmentCode;
   Map<String, dynamic>? _eventData;
   bool _isFinished = false;
   bool _isEnrolled = false;
@@ -88,8 +90,13 @@ class _DetailsPageState extends State<DetailsPage> {
         id!,
         widget.eventId!,
       );
+      String? code;
+      if (enrolled) {
+        code = await DatabaseMethods().getEnrollmentCode(id!, widget.eventId!);
+      }
       setState(() {
         _isEnrolled = enrolled;
+        _enrollmentCode = code;
         _isLoadingEnrollment = false;
       });
     } catch (e) {
@@ -104,9 +111,13 @@ class _DetailsPageState extends State<DetailsPage> {
     if (id == null || widget.eventId == null) return;
 
     try {
-      await DatabaseMethods().enrollUserInEvent(id!, widget.eventId!);
+      final code = await DatabaseMethods().enrollUserInEvent(
+        id!,
+        widget.eventId!,
+      );
       setState(() {
         _isEnrolled = true;
+        _enrollmentCode = code;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -123,6 +134,113 @@ class _DetailsPageState extends State<DetailsPage> {
       );
       print("Error enrolling in event: $e");
     }
+  }
+
+  String _formatEnrollmentCode(String code) {
+    if (code.length == 6) {
+      return code.substring(0, 3) + ' ' + code.substring(3);
+    }
+    return code;
+  }
+
+  Future<void> _copyEnrollmentCode() async {
+    if (_enrollmentCode == null) return;
+    await Clipboard.setData(ClipboardData(text: _enrollmentCode!));
+    HapticFeedback.lightImpact();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Código copiado para a área de transferência'),
+      ),
+    );
+  }
+
+  Widget _buildEnrollmentCodeCard() {
+    if (_enrollmentCode == null) return const SizedBox.shrink();
+    final formatted = _formatEnrollmentCode(_enrollmentCode!);
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.purple, AppColors.red],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          padding: const EdgeInsets.all(1.5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.verified, color: AppColors.purpleDark, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Seu código de inscrição',
+                      style: TextStyle(
+                        color: AppColors.purpleDark,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        formatted,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2.0,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Tooltip(
+                      message: 'Copiar',
+                      child: IconButton(
+                        onPressed: _copyEnrollmentCode,
+                        icon: const Icon(Icons.copy_rounded),
+                        color: AppColors.purpleDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: AppSpacing.sm),
+      ],
+    );
   }
 
   Future<void> _unenrollFromEvent() async {
@@ -175,22 +293,19 @@ class _DetailsPageState extends State<DetailsPage> {
         },
       );
 
-      // Validate the code
-      DocumentSnapshot? eventDoc = await DatabaseMethods().getEventByCode(code);
+      // Only accept the user's unique enrollment code for this event
+      final isOwnEnrollmentCode =
+          _enrollmentCode != null && code.trim() == _enrollmentCode;
 
       // Hide loading indicator
       Navigator.of(context).pop();
 
-      if (eventDoc != null) {
-        // Code is valid, proceed with check-in
+      if (isOwnEnrollmentCode) {
         await makeBooking();
       } else {
-        // Code is invalid
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Código inválido. Verifique o código fornecido pelo palestrante.',
-            ),
+            content: Text('Código inválido. Use seu código de inscrição.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -417,6 +532,7 @@ class _DetailsPageState extends State<DetailsPage> {
               Container(
                 child: Column(
                   children: [
+                    _buildEnrollmentCodeCard(),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
                       child: Column(
@@ -513,6 +629,8 @@ class _DetailsPageState extends State<DetailsPage> {
         "time": widget.time,
         "lectureName": widget.name,
         "lectureImage": widget.image,
+        "eventId": widget.eventId,
+        "enrollmentCode": _enrollmentCode,
         "Date": widget.date,
         "Time": widget.time,
         "Speaker": widget.speaker,
