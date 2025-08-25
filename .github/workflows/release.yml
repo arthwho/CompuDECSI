@@ -34,7 +34,7 @@ jobs:
       - name: Setup Google Services
         run: |
           if [ "${{ secrets.GOOGLE_SERVICES_JSON }}" != "" ]; then
-            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > android/app/google-services.json
             echo "✅ Google Services configured"
           else
             echo "⚠️ No Google Services configured - build may fail"
