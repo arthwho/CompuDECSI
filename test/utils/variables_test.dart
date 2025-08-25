@@ -5,8 +5,8 @@ import 'package:compudecsi/utils/variables.dart';
 void main() {
   group('AppColors', () {
     test('should have correct color values', () {
-      expect(AppColors.primary, equals(const Color(0xff9F21A0)));
-      expect(AppColors.btnPrimary, equals(const Color(0xffAC2180)));
+      expect(AppColors.primary, equals(const Color(0xffAC2180))); // This is AppColors.purple
+      expect(AppColors.btnPrimary, equals(const Color(0xff841e73))); // This is AppColors.purpleDark
       expect(AppColors.black, equals(const Color(0xff262628)));
       expect(AppColors.white, equals(const Color(0xffFDFCFA)));
       expect(AppColors.blue, equals(const Color(0xff274560)));
