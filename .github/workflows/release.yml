@@ -31,6 +31,15 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
+      - name: Setup Google Services
+        run: |
+          if [ "${{ secrets.GOOGLE_SERVICES_JSON }}" != "" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+            echo "✅ Google Services configured"
+          else
+            echo "⚠️ No Google Services configured - build may fail"
+          fi
+        
       - name: Setup signing (if available)
         run: |
           if [ "${{ secrets.KEYSTORE_FILE }}" != "" ]; then
