@@ -474,9 +474,16 @@ class _DetailsPageState extends State<DetailsPage> {
             Container(
               child: Column(
                 children: [
-                  Text(
-                    widget.name,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Container(
+                    width: double.infinity,
+                    child: Text(
+                      widget.name,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
                   ),
                   if (_isFinished) ...[
                     SizedBox(height: 8),
@@ -582,7 +589,14 @@ class _DetailsPageState extends State<DetailsPage> {
                     ],
                   ),
                   SizedBox(height: AppSpacing.md),
-                  Text(widget.description!, style: TextStyle(fontSize: 16)),
+                  Container(
+                    width: double.infinity,
+                    child: Text(
+                      widget.description!,
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -627,7 +641,11 @@ class _DetailsPageState extends State<DetailsPage> {
                   onPressed: _enrollInEvent,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.purpleDark,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+
                   child: const Text(
                     'Inscrever-se',
                     style: TextStyle(fontWeight: FontWeight.bold),
