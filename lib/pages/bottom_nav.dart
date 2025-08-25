@@ -35,15 +35,6 @@ class _BottomNavState extends State<BottomNav> {
         userImage: userImage,
       ),
     ];
-    if (isAdmin) {
-      tabs.add(
-        _TabItem(
-          label: 'Admin',
-          icon: const Icon(Icons.admin_panel_settings),
-          page: const AdminPanel(),
-        ),
-      );
-    }
     return tabs;
   }
 
@@ -96,6 +87,18 @@ class _BottomNavState extends State<BottomNav> {
             }).toList(),
           ),
           body: tabs[currentIndex].page,
+          floatingActionButton: isAdmin
+              ? FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AdminPanel()),
+                    );
+                  },
+                  icon: const Icon(Icons.admin_panel_settings),
+                  label: const Text('Admin'),
+                )
+              : null,
         );
       },
     );

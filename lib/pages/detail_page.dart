@@ -265,14 +265,14 @@ class _DetailsPageState extends State<DetailsPage> {
                       children: [
                         Icon(
                           Icons.event_available,
-                          color: AppColors.purple,
+                          color: AppColors.purpleDark,
                           size: 20,
                         ),
                         SizedBox(width: 6),
                         Text(
                           'Evento finalizado',
                           style: TextStyle(
-                            color: AppColors.purple,
+                            color: AppColors.purpleDark,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -288,7 +288,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             widget.date,
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.btnPrimary,
+                              color: AppColors.purpleDark,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -297,7 +297,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             '•',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.btnPrimary,
+                              color: AppColors.purpleDark,
                             ),
                           ),
                           SizedBox(width: 8),
@@ -305,7 +305,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             widget.time,
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.btnPrimary,
+                              color: AppColors.purpleDark,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -314,7 +314,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             '•',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.btnPrimary,
+                              color: AppColors.purpleDark,
                             ),
                           ),
                           SizedBox(width: 8),
@@ -322,7 +322,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             widget.local,
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.btnPrimary,
+                              color: AppColors.purpleDark,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -390,7 +390,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     );
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.purple,
+                    backgroundColor: AppColors.btnPrimary,
                   ),
                   child: const Text(
                     'Avaliar evento',
@@ -404,7 +404,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 child: FilledButton(
                   onPressed: _enrollInEvent,
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.purple,
+                    backgroundColor: AppColors.purpleDark,
                   ),
                   child: const Text(
                     'Inscrever-se',
@@ -464,7 +464,7 @@ class _DetailsPageState extends State<DetailsPage> {
                         ],
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    SizedBox(height: AppSpacing.sm),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
                       child: OutlinedButton(
@@ -472,9 +472,6 @@ class _DetailsPageState extends State<DetailsPage> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.purple,
                           side: BorderSide(color: AppColors.purple, width: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                          ),
                         ),
                         child: Text(
                           _isFinished
@@ -484,17 +481,13 @@ class _DetailsPageState extends State<DetailsPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    SizedBox(height: AppSpacing.sm),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      child: OutlinedButton(
+                      child: TextButton(
                         onPressed: _unenrollFromEvent,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: BorderSide(color: Colors.red, width: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                          ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.destructive,
                         ),
                         child: const Text(
                           'Cancelar inscrição',

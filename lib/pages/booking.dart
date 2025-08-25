@@ -168,7 +168,7 @@ class _BookingState extends State<Booking> {
                                     decoration: BoxDecoration(
                                       color: isFinished
                                           ? Colors.grey
-                                          : AppColors.primary,
+                                          : AppColors.accent,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
