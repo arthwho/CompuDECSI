@@ -1,0 +1,70 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'v*-beta*'
+      - 'v*-alpha*'
+      - 'v*-rc*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Setup signing (if available)
+        run: |
+          if [ "${{ secrets.KEYSTORE_FILE }}" != "" ]; then
+            echo "Setting up release signing..."
+            echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > android/app/release-key.jks
+            echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/keystore.properties
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/keystore.properties
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/keystore.properties
+            echo "storeFile=release-key.jks" >> android/keystore.properties
+            echo "✅ Release signing configured"
+          else
+            echo "⚠️ No release signing configured, using debug signing"
+          fi
+        
+      - name: Build APK
+        run: flutter build apk --release
+        
+      - name: Build Complete
+        run: |
+          echo "✅ APK built successfully!"
+          echo "📱 Download the APK from the release"
+          
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-alpha') || contains(github.ref, '-rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
