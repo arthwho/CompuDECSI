@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:compudecsi/admin/admin_panel.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/utils/variables.dart';
@@ -514,7 +513,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(

@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:compudecsi/utils/variables.dart';
-import 'package:compudecsi/pages/onboarding_page.dart';
 import 'package:compudecsi/pages/privacy_policy_page.dart';
 import 'package:compudecsi/pages/terms_of_use_page.dart';
 import 'package:compudecsi/pages/notification_settings_page.dart';

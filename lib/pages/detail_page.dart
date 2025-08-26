@@ -581,7 +581,7 @@ class _DetailsPageState extends State<DetailsPage> {
         actions: [
           if (_canEditEvent()) ...[
             IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
+              icon: const Icon(Icons.edit),
               onPressed: _showEditEventDialog,
             ),
             IconButton(

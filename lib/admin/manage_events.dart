@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/services/category_service.dart';
-import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/admin/edit_event_page.dart';
+import 'package:compudecsi/admin/upload_event.dart';
 
 class ManageEventsPage extends StatefulWidget {
   const ManageEventsPage({super.key});
@@ -137,6 +139,40 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
     }
   }
 
+  IconData _getIconForCategory(String iconName) {
+    switch (iconName) {
+      case 'analytics':
+        return Icons.analytics;
+      case 'security':
+        return Icons.security;
+      case 'smart_toy':
+        return Icons.smart_toy;
+      case 'psychology':
+        return Icons.psychology;
+      case 'code':
+        return Icons.code;
+      case 'computer':
+        return Icons.computer;
+      case 'electric_bolt':
+        return Icons.electric_bolt;
+      case 'signal_cellular_alt':
+        return Icons.signal_cellular_alt;
+      default:
+        return Icons.category;
+    }
+  }
+
+  IconData _getCategoryIcon(String categoryValue) {
+    try {
+      final category = categories.firstWhere(
+        (cat) => cat['value'] == categoryValue,
+      );
+      return _getIconForCategory(category['icon'] as String);
+    } catch (e) {
+      return Icons.category;
+    }
+  }
+
   String _getStatusText(String status) {
     switch (status) {
       case 'scheduled':
@@ -205,231 +241,16 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
   }
 
   void _showEditEventDialog(Map<String, dynamic> event) {
-    // Ensure categories are loaded
-    if (categories.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Carregando categorias...'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    final nameController = TextEditingController(text: event['name']);
-    final descriptionController = TextEditingController(
-      text: event['description'],
-    );
-    final localController = TextEditingController(text: event['local']);
-    final speakerController = TextEditingController(
-      text: event['speaker'] ?? '',
-    );
-    final timeController = TextEditingController(text: event['time']);
-
-    // Validate category value exists in categories list
-    String? selectedCategory = event['category'];
-    if (selectedCategory != null) {
-      final categoryExists = categories.any(
-        (cat) => cat['value'] == selectedCategory,
-      );
-      if (!categoryExists) {
-        selectedCategory = null; // Reset if category doesn't exist
-      }
-    }
-
-    String selectedStatus = event['status'] ?? 'scheduled';
-    DateTime? selectedDate;
-
-    // Parse the date if it exists
-    if (event['date'] != null) {
-      try {
-        final parts = event['date'].split('/');
-        selectedDate = DateTime(
-          int.parse(parts[2]),
-          int.parse(parts[1]),
-          int.parse(parts[0]),
-        );
-      } catch (e) {
-        selectedDate = DateTime.now();
-      }
-    } else {
-      selectedDate = DateTime.now();
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              title: const Text('Editar Evento'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome do Evento',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descriptionController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(labelText: 'Descrição'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: localController,
-                      decoration: const InputDecoration(labelText: 'Local'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: speakerController,
-                      decoration: const InputDecoration(
-                        labelText: 'Palestrante',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: timeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Horário (HH:MM)',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ListTile(
-                      title: Text(
-                        'Data: ${selectedDate != null ? DateFormat('dd/MM/yyyy').format(selectedDate!) : 'Selecione uma data'}',
-                      ),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate ?? DateTime.now(),
-                          firstDate: DateTime.now().subtract(
-                            const Duration(days: 365),
-                          ),
-                          lastDate: DateTime.now().add(
-                            const Duration(days: 365),
-                          ),
-                        );
-                        if (date != null) {
-                          setState(() {
-                            selectedDate = date;
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Categoria'),
-                      items: [
-                        // Add a default option if no category is selected
-                        if (selectedCategory == null)
-                          const DropdownMenuItem<String>(
-                            value: null,
-                            child: Text('Selecione uma categoria'),
-                          ),
-                        ...categories.map((category) {
-                          return DropdownMenuItem<String>(
-                            value: category['value'] as String,
-                            child: Text(category['name'] as String),
-                          );
-                        }).toList(),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCategory = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: selectedStatus,
-                      decoration: const InputDecoration(labelText: 'Status'),
-                      items: [
-                        DropdownMenuItem(
-                          value: 'scheduled',
-                          child: Text('Agendado'),
-                        ),
-                        DropdownMenuItem(value: 'live', child: Text('Ao Vivo')),
-                        DropdownMenuItem(
-                          value: 'finished',
-                          child: Text('Finalizado'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedStatus = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancelar'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isNotEmpty &&
-                        descriptionController.text.isNotEmpty &&
-                        localController.text.isNotEmpty &&
-                        selectedDate != null &&
-                        selectedCategory != null) {
-                      final eventData = {
-                        'name': nameController.text,
-                        'description': descriptionController.text,
-                        'local': localController.text,
-                        'speaker': speakerController.text,
-                        'time': timeController.text,
-                        'date': DateFormat('dd/MM/yyyy').format(selectedDate!),
-                        'category': selectedCategory,
-                        'status': selectedStatus,
-                        'updatedAt': FieldValue.serverTimestamp(),
-                      };
-
-                      final success = await DatabaseMethods().updateEvent(
-                        event['id'],
-                        eventData,
-                      );
-
-                      if (success) {
-                        Navigator.of(context).pop();
-                        _reloadEventsWithRole();
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Evento atualizado com sucesso!'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      } else {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Erro ao atualizar evento'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  },
-                  child: const Text('Salvar'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(builder: (context) => EditEventPage(event: event)),
+        )
+        .then((result) {
+          // Reload events if the edit was successful
+          if (result == true) {
+            _reloadEventsWithRole();
+          }
+        });
   }
 
   void _showDeleteConfirmation(Map<String, dynamic> event) {
@@ -570,6 +391,29 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
               ],
             ),
           ),
+          // Create event button
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UploadEvent()),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('Criar evento'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ),
           // Events list
           Expanded(
             child: isLoading
@@ -585,114 +429,193 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                     itemCount: filteredEvents.length,
                     itemBuilder: (context, index) {
                       final event = filteredEvents[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          title: Text(
-                            event['name'] ?? 'Sem nome',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                      return Center(
+                        child: Card(
+                          color: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(color: AppColors.border),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              // Optional: Add tap functionality if needed
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                // Card Header
+                                ListTile(
+                                  title: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          event['name'] ?? 'Sem nome',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                      if (_canEditEvent(event))
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.edit),
+                                              onPressed: () =>
+                                                  _showEditEventDialog(event),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                              ),
+                                              onPressed: () =>
+                                                  _showDeleteConfirmation(
+                                                    event,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 16.0,
+                                    bottom: 8.0,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        event['date'] ?? 'Data não definida',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.btnPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        '•',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.btnPrimary,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        event['time'] ?? 'Horário não definido',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.btnPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        '•',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.btnPrimary,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        event['local'] ?? 'Local não definido',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.btnPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Event details
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        event['description'] ?? 'Sem descrição',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.person, size: 16),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            event['speaker'] ??
+                                                'Palestrante não definido',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            _getCategoryIcon(
+                                              event['category'] ?? '',
+                                            ),
+                                            size: 16,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            _getCategoryName(
+                                              event['category'] ?? '',
+                                            ),
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _getStatusColor(
+                                            event['status'] ?? 'scheduled',
+                                          ).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _getStatusText(
+                                            event['status'] ?? 'scheduled',
+                                          ),
+                                          style: TextStyle(
+                                            color: _getStatusColor(
+                                              event['status'] ?? 'scheduled',
+                                            ),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 8),
-                              Text(
-                                event['description'] ?? 'Sem descrição',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(Icons.location_on, size: 16),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      event['local'] ?? 'Local não definido',
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.calendar_today, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${event['date'] ?? 'Data não definida'} às ${event['time'] ?? 'Horário não definido'}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.category, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _getCategoryName(event['category'] ?? ''),
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(
-                                    event['status'] ?? 'scheduled',
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  _getStatusText(
-                                    event['status'] ?? 'scheduled',
-                                  ),
-                                  style: TextStyle(
-                                    color: _getStatusColor(
-                                      event['status'] ?? 'scheduled',
-                                    ),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: _canEditEvent(event)
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () =>
-                                          _showEditEventDialog(event),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () =>
-                                          _showDeleteConfirmation(event),
-                                    ),
-                                  ],
-                                )
-                              : null,
                         ),
                       );
                     },

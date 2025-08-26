@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/category_service.dart';
-import 'package:compudecsi/utils/variables.dart';
 
 class ManageCategoriesPage extends StatefulWidget {
   const ManageCategoriesPage({super.key});
