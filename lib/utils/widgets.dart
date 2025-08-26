@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:compudecsi/utils/variables.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;

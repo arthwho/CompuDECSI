@@ -4,9 +4,7 @@ import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/services/event_service.dart';
 import 'package:compudecsi/utils/variables.dart';
-import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:animated_emoji/animated_emoji.dart';
 
 class Booking extends StatefulWidget {
   const Booking({super.key});

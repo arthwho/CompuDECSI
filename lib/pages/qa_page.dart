@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/models/question.dart';
 import 'package:compudecsi/services/question_service.dart';
 import 'package:compudecsi/utils/variables.dart';

@@ -1,6 +1,5 @@
 import 'package:compudecsi/admin/manage_users.dart';
 import 'package:compudecsi/admin/feedback_dashboard.dart';
-import 'package:compudecsi/admin/upload_event.dart';
 import 'package:compudecsi/admin/manage_categories.dart';
 import 'package:compudecsi/admin/manage_events.dart';
 import 'package:compudecsi/utils/role_guard.dart';
@@ -73,48 +72,17 @@ class AdminPanel extends StatelessWidget {
                     ),
                   ),
                   const Divider(height: 1),
-                  // Show upload event for both admins and speakers
-                  ExpansionTile(
+                  // Show event management for both admins and speakers
+                  ListTile(
                     leading: const Icon(Icons.event),
-                    title: const Text('Gerenciar Palestras'),
-                    subtitle: const Text('Criar, editar e excluir palestras'),
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.add_circle_outline, size: 20),
-                        title: const Text('Criar Palestra'),
-                        subtitle: const Text('Adicionar nova palestra'),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const UploadEvent(),
-                          ),
-                        ),
+                    title: const Text('Gerenciar eventos'),
+                    subtitle: const Text('Criar, editar e excluir eventos'),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ManageEventsPage(),
                       ),
-                      ListTile(
-                        leading: const Icon(Icons.edit, size: 20),
-                        title: const Text('Editar Palestras'),
-                        subtitle: const Text(
-                          'Visualizar e modificar palestras',
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ManageEventsPage(),
-                          ),
-                        ),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.delete, size: 20),
-                        title: const Text('Excluir Palestras'),
-                        subtitle: const Text('Remover palestras do sistema'),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ManageEventsPage(),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const Divider(height: 1),
                   // Show category management only for admins

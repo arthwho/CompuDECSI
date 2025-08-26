@@ -1,8 +1,5 @@
 import 'package:compudecsi/utils/variables.dart';
-import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:gif/gif.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});

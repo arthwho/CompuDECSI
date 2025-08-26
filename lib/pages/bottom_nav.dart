@@ -62,6 +62,7 @@ class _BottomNavState extends State<BottomNav> {
 
         return Scaffold(
           bottomNavigationBar: NavigationBar(
+            elevation: 3,
             labelTextStyle: const WidgetStatePropertyAll(
               TextStyle(fontWeight: FontWeight.bold),
             ),

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/services/feedback_service.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/widgets/rating_bar.dart';
