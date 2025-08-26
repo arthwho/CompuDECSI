@@ -171,4 +171,78 @@ class DatabaseMethods {
         .collection("lectures")
         .add(userInfoMap);
   }
+
+  // Update an existing event
+  Future<bool> updateEvent(
+    String eventId,
+    Map<String, dynamic> eventData,
+  ) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
+          .update(eventData);
+      return true;
+    } catch (e) {
+      print("Error updating event: $e");
+      return false;
+    }
+  }
+
+  // Delete an event
+  Future<bool> deleteEvent(String eventId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
+          .delete();
+      return true;
+    } catch (e) {
+      print("Error deleting event: $e");
+      return false;
+    }
+  }
+
+  // Get all events as a list (for admin management)
+  Future<List<Map<String, dynamic>>> getAllEventsList() async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection("events")
+          .get();
+
+      List<Map<String, dynamic>> events = snapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
+          .toList();
+
+      // Sort events by date (most recent first)
+      events.sort((a, b) {
+        try {
+          final dateA = _parseDateString(a['date'] ?? '');
+          final dateB = _parseDateString(b['date'] ?? '');
+          return dateB.compareTo(dateA); // descending order
+        } catch (e) {
+          return 0;
+        }
+      });
+
+      return events;
+    } catch (e) {
+      print("Error getting events list: $e");
+      return [];
+    }
+  }
+
+  // Helper method to parse date string (dd/MM/yyyy) to DateTime
+  DateTime _parseDateString(String dateStr) {
+    if (dateStr.isEmpty) return DateTime.now();
+    final parts = dateStr.split('/');
+    if (parts.length == 3) {
+      return DateTime(
+        int.parse(parts[2]), // year
+        int.parse(parts[1]), // month
+        int.parse(parts[0]), // day
+      );
+    }
+    return DateTime.now();
+  }
 }

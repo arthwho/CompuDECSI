@@ -9,6 +9,8 @@ import 'package:compudecsi/utils/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:compudecsi/admin/manage_events.dart';
 
 // ignore: must_be_immutable
 class DetailsPage extends StatefulWidget {
@@ -39,6 +41,8 @@ class _DetailsPageState extends State<DetailsPage> {
   bool _isFinished = false;
   bool _isEnrolled = false;
   bool _isLoadingEnrollment = true;
+  String? userRole;
+  String? currentUserName;
 
   @override
   void initState() {
@@ -51,12 +55,40 @@ class _DetailsPageState extends State<DetailsPage> {
     name = await SharedpreferenceHelper().getUserName();
     image = await SharedpreferenceHelper().getUserImage();
 
+    // Load user role for edit/delete permissions
+    await _loadUserRole();
+
     if (widget.eventId != null) {
       await _fetchEvent();
       await _checkEnrollmentStatus();
     }
 
     setState(() {});
+  }
+
+  Future<void> _loadUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          final userData = userDoc.data()!;
+          setState(() {
+            userRole = userData['role'] ?? 'student';
+            currentUserName = userData['Name'] ?? '';
+          });
+        }
+      } catch (e) {
+        print('Error loading user role: $e');
+        setState(() {
+          userRole = 'student';
+        });
+      }
+    }
   }
 
   Future<void> _fetchEvent() async {
@@ -442,6 +474,93 @@ class _DetailsPageState extends State<DetailsPage> {
     return s[0].toUpperCase() + s.substring(1).toLowerCase();
   }
 
+  bool _canEditEvent() {
+    if (userRole == 'admin') {
+      return true; // Admins can edit all events
+    }
+
+    if (userRole == 'speaker' && currentUserName != null) {
+      // Speakers can only edit events they are lecturing
+      return widget.speaker == currentUserName;
+    }
+
+    return false; // Students cannot edit events
+  }
+
+  void _showEditEventDialog() {
+    if (widget.eventId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ID do evento não encontrado'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ManageEventsPage()),
+    ).then((_) {
+      // Refresh the page when returning from edit
+      ontheload();
+    });
+  }
+
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('Confirmar Exclusão'),
+          content: Text(
+            'Tem certeza que deseja excluir o evento "${widget.name}"?\n\nEsta ação não pode ser desfeita.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (widget.eventId != null) {
+                  final success = await DatabaseMethods().deleteEvent(
+                    widget.eventId!,
+                  );
+
+                  if (success) {
+                    Navigator.of(context).pop(); // Close dialog
+                    Navigator.of(context).pop(); // Go back to previous page
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Evento excluído com sucesso!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    Navigator.of(context).pop(); // Close dialog
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Erro ao excluir evento'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text(
+                'Excluir',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -454,11 +573,23 @@ class _DetailsPageState extends State<DetailsPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black, size: 30),
+          icon: Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          if (_canEditEvent()) ...[
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.blue),
+              onPressed: _showEditEventDialog,
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _showDeleteConfirmation,
+            ),
+          ],
+        ],
       ),
       body: Container(
         color: Colors.white,

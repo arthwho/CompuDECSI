@@ -86,11 +86,8 @@ class AuthMethods {
           ),
         );
 
-        // Navigate to bottom navigation
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => BottomNav()),
-        );
+        // Navigation is now handled automatically by AuthWrapper
+        // No need to manually navigate here
       }
     } catch (e) {
       // Hide loading indicator if it's still showing

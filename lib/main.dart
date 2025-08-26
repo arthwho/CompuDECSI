@@ -1,8 +1,4 @@
-import 'package:compudecsi/admin/upload_event.dart';
 import 'package:compudecsi/pages/bottom_nav.dart';
-import 'package:compudecsi/pages/detail_page.dart';
-import 'package:compudecsi/pages/home.dart';
-import 'package:compudecsi/pages/signup.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/pages/onboarding_page.dart';
 import 'package:compudecsi/services/notification_service.dart';
@@ -10,14 +6,15 @@ import 'package:compudecsi/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  
+
   // Initialize timezones for notifications
   NotificationService.initializeTimeZones();
-  
+
   // Initialize notification service
   await NotificationService().initialize();
 
@@ -37,7 +34,34 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         textTheme: GoogleFonts.interTextTheme(),
       ),
-      home: Onboarding(),
+      home: const AuthWrapper(),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Show loading indicator while checking authentication state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // If user is signed in, go to main app
+        if (snapshot.hasData && snapshot.data != null) {
+          return const BottomNav();
+        }
+
+        // If user is not signed in, show onboarding
+        return const Onboarding();
+      },
     );
   }
 }

@@ -215,13 +215,8 @@ class _ProfileState extends State<Profile> {
       // Sign out from Firebase
       await FirebaseAuth.instance.signOut();
 
-      // Navigate to onboarding page
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const Onboarding()),
-          (route) => false,
-        );
-      }
+      // Navigation is now handled automatically by AuthWrapper
+      // No need to manually navigate here
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

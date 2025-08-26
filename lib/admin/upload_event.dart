@@ -161,7 +161,7 @@ class _UploadEventState extends State<UploadEvent> {
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black, size: 30),
+            icon: Icon(Icons.arrow_back),
             onPressed: () {
               Navigator.pop(context);
             },
