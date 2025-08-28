@@ -158,15 +158,15 @@ class DatabaseMethods {
     }
   }
 
-  Future addUserBooking(Map<String, dynamic> userInfoMap, String id) async {
+  Future addUserCheckIn(Map<String, dynamic> userInfoMap, String id) async {
     return await FirebaseFirestore.instance
         .collection("users")
         .doc(id)
-        .collection("bookings")
+        .collection("checkedIn")
         .add(userInfoMap);
   }
 
-  Future addAdminBooking(Map<String, dynamic> userInfoMap) async {
+  Future addAdminCheckIn(Map<String, dynamic> userInfoMap) async {
     return await FirebaseFirestore.instance
         .collection("lectures")
         .add(userInfoMap);

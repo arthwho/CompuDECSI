@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum UserRole { student, speaker, admin }
+enum UserRole { student, speaker, admin, staff }
 
 UserRole roleFromString(String? value) {
   switch (value) {
@@ -8,6 +8,8 @@ UserRole roleFromString(String? value) {
       return UserRole.admin;
     case 'speaker':
       return UserRole.speaker;
+    case 'staff':
+      return UserRole.staff;
     case 'student':
     default:
       return UserRole.student;
@@ -20,6 +22,8 @@ String roleToString(UserRole role) {
       return 'admin';
     case UserRole.speaker:
       return 'speaker';
+    case UserRole.staff:
+      return 'staff';
     case UserRole.student:
       return 'student';
   }

@@ -130,6 +130,10 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                                   child: Text('Palestrante'),
                                 ),
                                 DropdownMenuItem(
+                                  value: 'staff',
+                                  child: Text('Staff'),
+                                ),
+                                DropdownMenuItem(
                                   value: 'admin',
                                   child: Text('Admin'),
                                 ),
