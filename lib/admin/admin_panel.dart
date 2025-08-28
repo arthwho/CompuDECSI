@@ -2,6 +2,7 @@ import 'package:compudecsi/admin/manage_users.dart';
 import 'package:compudecsi/admin/feedback_dashboard.dart';
 import 'package:compudecsi/admin/manage_categories.dart';
 import 'package:compudecsi/admin/manage_events.dart';
+import 'package:compudecsi/admin/qr_scanner_page.dart';
 import 'package:compudecsi/utils/role_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,7 +14,7 @@ class AdminPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RoleGuard(
-      requiredRoles: const {'admin', 'speaker'},
+      requiredRoles: const {'admin', 'speaker', 'staff'},
       builder: (context) => Scaffold(
         appBar: AppBar(
           title: const Text('Administração'),
@@ -34,6 +35,7 @@ class AdminPanel extends StatelessWidget {
               final role =
                   snapshot.data?.data()?['role'] as String? ?? 'student';
               final isAdmin = role == 'admin';
+              final isStaff = role == 'staff';
 
               return ListView(
                 children: [
@@ -55,33 +57,48 @@ class AdminPanel extends StatelessWidget {
                     ),
                     const Divider(height: 1),
                   ],
-                  // Show feedback dashboard for both admins and speakers
-                  ListTile(
-                    leading: const Icon(Icons.reviews),
-                    title: const Text('Feedback dos eventos'),
-                    subtitle: Text(
-                      isAdmin
-                          ? 'Médias e comentários enviados'
-                          : 'Feedback dos seus eventos',
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const FeedbackDashboardPage(),
+                  // Show feedback dashboard for admins, speakers, and staff
+                  if (!isStaff) ...[
+                    ListTile(
+                      leading: const Icon(Icons.reviews),
+                      title: const Text('Feedback dos eventos'),
+                      subtitle: Text(
+                        isAdmin
+                            ? 'Médias e comentários enviados'
+                            : 'Feedback dos seus eventos',
+                      ),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FeedbackDashboardPage(),
+                        ),
                       ),
                     ),
-                  ),
-                  const Divider(height: 1),
-                  // Show event management for both admins and speakers
+                    const Divider(height: 1),
+                  ],
+                  // Show event management for admins and speakers (not staff)
+                  if (!isStaff) ...[
+                    ListTile(
+                      leading: const Icon(Icons.event),
+                      title: const Text('Gerenciar eventos'),
+                      subtitle: const Text('Criar, editar e excluir eventos'),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ManageEventsPage(),
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                  ],
+                  // Show QR scanner for admins, speakers, and staff
                   ListTile(
-                    leading: const Icon(Icons.event),
-                    title: const Text('Gerenciar eventos'),
-                    subtitle: const Text('Criar, editar e excluir eventos'),
+                    leading: const Icon(Icons.qr_code_scanner),
+                    title: const Text('Scanner QR Code'),
+                    subtitle: const Text('Fazer check-in dos participantes'),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const ManageEventsPage(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const QRScannerPage()),
                     ),
                   ),
                   const Divider(height: 1),

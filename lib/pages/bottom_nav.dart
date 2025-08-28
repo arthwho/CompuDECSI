@@ -5,6 +5,7 @@ import 'package:compudecsi/pages/booking.dart';
 import 'package:compudecsi/pages/home.dart';
 import 'package:compudecsi/pages/profile.dart';
 import 'package:compudecsi/admin/admin_panel.dart';
+import 'package:compudecsi/admin/qr_scanner_page.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -55,7 +56,9 @@ class _BottomNavState extends State<BottomNav> {
         final userImage = snap.data?.data()?['Image'] as String?;
         final isAdmin = role == 'admin';
         final isSpeaker = role == 'speaker';
+        final isStaff = role == 'staff';
         final hasAdminAccess = isAdmin || isSpeaker;
+        final hasStaffAccess = isStaff;
         final tabs = _buildTabs(isAdmin: isAdmin, userImage: userImage);
         // Clamp index if tabs changed (e.g., admin -> non-admin)
         if (currentIndex >= tabs.length) currentIndex = tabs.length - 1;
@@ -104,6 +107,17 @@ class _BottomNavState extends State<BottomNav> {
                         : Icons.add_circle_outline,
                   ),
                   label: Text(isAdmin ? 'Admin' : 'Criar Palestra'),
+                )
+              : hasStaffAccess
+              ? FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const QRScannerPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: const Text('Realizar checkin'),
                 )
               : null,
         );

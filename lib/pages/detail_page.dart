@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/admin/manage_events.dart';
+import 'package:compudecsi/widgets/qr_code_dialog.dart';
 
 // ignore: must_be_immutable
 class DetailsPage extends StatefulWidget {
@@ -275,6 +276,19 @@ class _DetailsPageState extends State<DetailsPage> {
     return code;
   }
 
+  void _showQRCodeDialog() {
+    if (_enrollmentCode == null) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return QRCodeDialog(
+          enrollmentCode: _enrollmentCode!,
+          eventName: widget.name,
+        );
+      },
+    );
+  }
+
   Future<void> _copyEnrollmentCode() async {
     if (_enrollmentCode == null) return;
     await Clipboard.setData(ClipboardData(text: _enrollmentCode!));
@@ -289,17 +303,12 @@ class _DetailsPageState extends State<DetailsPage> {
 
   Widget _buildEnrollmentCodeCard() {
     if (_enrollmentCode == null) return const SizedBox.shrink();
-    final formatted = _formatEnrollmentCode(_enrollmentCode!);
     return Column(
       children: [
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.purple, AppColors.red],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
+            color: AppColors.border,
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.all(1.5),
@@ -315,56 +324,57 @@ class _DetailsPageState extends State<DetailsPage> {
                 ),
               ],
             ),
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.verified, color: AppColors.purpleDark, size: 18),
-                    const SizedBox(width: 6),
+                    Icon(Icons.qr_code, color: AppColors.purpleDark, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      'Seu código de inscrição',
+                      'Seu QR Code de inscrição',
                       style: TextStyle(
                         color: AppColors.purpleDark,
                         fontWeight: FontWeight.w600,
+                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.purple.withOpacity(0.08),
+                const SizedBox(height: 12),
+                Text(
+                  'Apresente este QR Code para o administrador fazer o check-in',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _showQRCodeDialog,
+                    icon: const Icon(Icons.qr_code_scanner),
+                    label: const Text('Mostrar QR Code'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.btnPrimary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        formatted,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2.0,
-                          fontSize: 20,
-                        ),
-                      ),
                     ),
-                    const SizedBox(width: 10),
-                    Tooltip(
-                      message: 'Copiar',
-                      child: IconButton(
-                        onPressed: _copyEnrollmentCode,
-                        icon: const Icon(Icons.copy_rounded),
-                        color: AppColors.purpleDark,
-                      ),
-                    ),
-                  ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: _copyEnrollmentCode,
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  label: const Text('Copiar código'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.btnPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
                 ),
               ],
             ),
@@ -437,7 +447,7 @@ class _DetailsPageState extends State<DetailsPage> {
       Navigator.of(context).pop();
 
       if (isOwnEnrollmentCode) {
-        await makeBooking();
+        await performCheckIn();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -839,26 +849,6 @@ class _DetailsPageState extends State<DetailsPage> {
                     SizedBox(height: AppSpacing.sm),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      child: OutlinedButton(
-                        onPressed: _isFinished ? null : _showCodeInputDialog,
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          foregroundColor: AppColors.purple,
-                          side: BorderSide(color: AppColors.purple, width: 2),
-                        ),
-                        child: Text(
-                          _isFinished
-                              ? 'Check-in indisponível (finalizado)'
-                              : 'Fazer checkin',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: AppSpacing.sm),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
                       child: TextButton(
                         onPressed: _unenrollFromEvent,
                         style: TextButton.styleFrom(
@@ -882,9 +872,9 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  Future<void> makeBooking() async {
+  Future<void> performCheckIn() async {
     try {
-      Map<String, dynamic> bookingDetail = {
+      Map<String, dynamic> checkInDetail = {
         "name": name,
         "image": image,
         "date": widget.date,
@@ -898,10 +888,10 @@ class _DetailsPageState extends State<DetailsPage> {
         "Speaker": widget.speaker,
         "Location": widget.local,
       };
-      await DatabaseMethods().addUserBooking(bookingDetail, id!).then((
+      await DatabaseMethods().addUserCheckIn(checkInDetail, id!).then((
         value,
       ) async {
-        await DatabaseMethods().addAdminBooking(bookingDetail);
+        await DatabaseMethods().addAdminCheckIn(checkInDetail);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Checkin realizado com sucesso!'),

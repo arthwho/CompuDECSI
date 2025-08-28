@@ -60,7 +60,7 @@ class _HomeState extends State<Home> {
 
   Future<void> _loadEmojiPreference() async {
     final emoji = await SharedpreferenceHelper().getUserEmoji();
-    if (emoji != null && emoji.isNotEmpty) {
+    if (emoji != null && emoji.isNotEmpty && mounted) {
       setState(() {
         selectedEmoji = emoji;
       });
@@ -102,28 +102,32 @@ class _HomeState extends State<Home> {
         );
       }
 
-      setState(() {
-        categories = newCategories;
-      });
+      if (mounted) {
+        setState(() {
+          categories = newCategories;
+        });
+      }
     } catch (e) {
       print('Error fetching categories: $e');
       // Fallback to default categories
-      setState(() {
-        categories = [
-          const CardInfo('Data Science', 'data_science', Icons.analytics),
-          const CardInfo('Criptografia', 'cryptography', Icons.security),
-          const CardInfo('Robótica', 'robotics', Icons.smart_toy),
-          const CardInfo('Inteligência Artificial', 'ai', Icons.psychology),
-          const CardInfo('Software', 'software', Icons.code),
-          const CardInfo('Computação', 'computing', Icons.computer),
-          const CardInfo('Eletrônica', 'electronics', Icons.electric_bolt),
-          const CardInfo(
-            'Telecomunicações',
-            'telecom',
-            Icons.signal_cellular_alt,
-          ),
-        ];
-      });
+      if (mounted) {
+        setState(() {
+          categories = [
+            const CardInfo('Data Science', 'data_science', Icons.analytics),
+            const CardInfo('Criptografia', 'cryptography', Icons.security),
+            const CardInfo('Robótica', 'robotics', Icons.smart_toy),
+            const CardInfo('Inteligência Artificial', 'ai', Icons.psychology),
+            const CardInfo('Software', 'software', Icons.code),
+            const CardInfo('Computação', 'computing', Icons.computer),
+            const CardInfo('Eletrônica', 'electronics', Icons.electric_bolt),
+            const CardInfo(
+              'Telecomunicações',
+              'telecom',
+              Icons.signal_cellular_alt,
+            ),
+          ];
+        });
+      }
     }
   }
 

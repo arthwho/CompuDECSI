@@ -188,6 +188,8 @@ class _ProfileState extends State<Profile> {
         return 'Administrador';
       case 'speaker':
         return 'Palestrante';
+      case 'staff':
+        return 'Staff';
       case 'student':
       default:
         return 'Estudante';

@@ -129,6 +129,7 @@ class NotificationService {
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
+          icon: 'ic_notification_logo',
         );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
@@ -185,6 +186,7 @@ class NotificationService {
             showWhen: true,
             enableLights: true,
             playSound: true,
+            icon: 'ic_event_notification',
           );
 
       const DarwinNotificationDetails iOSPlatformChannelSpecifics =
@@ -443,6 +445,7 @@ class NotificationService {
           showWhen: true,
           enableLights: true,
           playSound: true,
+          icon: 'ic_notification_logo',
         );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
