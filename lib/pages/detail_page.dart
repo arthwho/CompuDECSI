@@ -11,7 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/admin/manage_events.dart';
-import 'package:compudecsi/widgets/qr_code_dialog.dart';
+import 'package:compudecsi/widgets/qr_code_bottom_sheet.dart';
 
 // ignore: must_be_immutable
 class DetailsPage extends StatefulWidget {
@@ -276,12 +276,14 @@ class _DetailsPageState extends State<DetailsPage> {
     return code;
   }
 
-  void _showQRCodeDialog() {
+  void _showQRCodeBottomSheet() {
     if (_enrollmentCode == null) return;
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return QRCodeDialog(
+        return QRCodeBottomSheet(
           enrollmentCode: _enrollmentCode!,
           eventName: widget.name,
         );
@@ -353,7 +355,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: _showQRCodeDialog,
+                    onPressed: _showQRCodeBottomSheet,
                     icon: const Icon(Icons.qr_code_scanner),
                     label: const Text('Mostrar QR Code'),
                     style: ElevatedButton.styleFrom(
@@ -747,7 +749,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 width: MediaQuery.of(context).size.width,
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (_isFinished)
+            else if (_isFinished && _isEnrolled)
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: FilledButton(
@@ -772,6 +774,42 @@ class _DetailsPageState extends State<DetailsPage> {
                   child: const Text(
                     'Avaliar evento',
                     style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              )
+            else if (_isFinished && !_isEnrolled)
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.grey[600],
+                        size: 24,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Avaliação indisponível',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Você precisa estar inscrito no evento para avaliá-lo',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               )

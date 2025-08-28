@@ -281,7 +281,7 @@ class _ProfileState extends State<Profile> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
