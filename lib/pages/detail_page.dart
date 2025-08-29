@@ -354,14 +354,14 @@ class _DetailsPageState extends State<DetailsPage> {
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  child: OutlinedButton.icon(
                     onPressed: _showQRCodeBottomSheet,
                     icon: const Icon(Icons.qr_code_scanner),
                     label: const Text('Mostrar QR Code'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.btnPrimary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.btnPrimary,
+                      side: BorderSide(color: AppColors.btnPrimary),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

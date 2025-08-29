@@ -3,6 +3,7 @@ import 'package:compudecsi/admin/feedback_dashboard.dart';
 import 'package:compudecsi/admin/manage_categories.dart';
 import 'package:compudecsi/admin/manage_events.dart';
 import 'package:compudecsi/admin/qr_scanner_page.dart';
+import 'package:compudecsi/admin/checkin_audit_page.dart';
 import 'package:compudecsi/utils/role_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -102,6 +103,25 @@ class AdminPanel extends StatelessWidget {
                     ),
                   ),
                   const Divider(height: 1),
+                  // Show check-in audit for admins and staff
+                  if (isAdmin || isStaff) ...[
+                    ListTile(
+                      leading: const Icon(Icons.assessment),
+                      title: Text(isAdmin ? 'Auditoria de Check-ins' : 'Check-ins'),
+                      subtitle: Text(
+                        isAdmin 
+                            ? 'Verificar check-ins por evento e staff'
+                            : 'Verificar check-ins e realizar novos',
+                      ),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CheckinAuditPage(),
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                  ],
                   // Show category management only for admins
                   if (isAdmin) ...[
                     ListTile(
