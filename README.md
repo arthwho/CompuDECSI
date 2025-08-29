@@ -1,5 +1,5 @@
 <div align="center">
-<img src="assets/compudecsi.png" alt="CompuDECSI logo" style="width: 50%;">
+<img src="assets/compudecsi.png" alt="CompuDECSI logo" style="width: 25%;">
 
 <strong>CompuDECSI</strong>
 
