@@ -6,6 +6,7 @@ import 'package:compudecsi/pages/home.dart';
 import 'package:compudecsi/pages/profile.dart';
 import 'package:compudecsi/admin/admin_panel.dart';
 import 'package:compudecsi/admin/qr_scanner_page.dart';
+import 'package:compudecsi/admin/checkin_audit_page.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -113,11 +114,11 @@ class _BottomNavState extends State<BottomNav> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const QRScannerPage()),
+                      MaterialPageRoute(builder: (_) => const CheckinAuditPage()),
                     );
                   },
-                  icon: const Icon(Icons.qr_code_scanner),
-                  label: const Text('Realizar checkin'),
+                  icon: const Icon(Icons.assessment),
+                  label: const Text('Auditoria'),
                 )
               : null,
         );

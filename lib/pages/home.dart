@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:animated_emoji/animated_emoji.dart';
 import 'package:compudecsi/services/category_service.dart';
+import 'package:compudecsi/widgets/event_search_widget.dart';
+import 'package:compudecsi/pages/all_events.dart';
 
 class CardInfo {
   const CardInfo(this.label, this.value, this.icon);
@@ -47,6 +49,98 @@ class _HomeState extends State<Home> {
   String _capitalize(String s) {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1).toLowerCase();
+  }
+
+  // Filter events to show only upcoming events (from current date and time forward)
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> _filterUpcomingEvents(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> events,
+  ) {
+    final now = DateTime.now();
+    
+    final upcomingEvents = events.where((doc) {
+      final data = doc.data();
+      final eventDate = data['date'] as String?;
+      final eventTime = data['time'] as String?;
+      
+      if (eventDate == null || eventTime == null) {
+        return false; // Skip events without date or time
+      }
+      
+      try {
+        // Parse event date (dd/MM/yyyy)
+        final dateParts = eventDate.split('/');
+        if (dateParts.length != 3) return false;
+        
+        final eventDay = int.parse(dateParts[0]);
+        final eventMonth = int.parse(dateParts[1]);
+        final eventYear = int.parse(dateParts[2]);
+        
+        // Parse event time (HH:mm)
+        final timeParts = eventTime.split(':');
+        if (timeParts.length != 2) return false;
+        
+        final eventHour = int.parse(timeParts[0]);
+        final eventMinute = int.parse(timeParts[1]);
+        
+        // Create event DateTime
+        final eventDateTime = DateTime(eventYear, eventMonth, eventDay, eventHour, eventMinute);
+        
+        // Return true if event is in the future (including current time)
+        return eventDateTime.isAfter(now) || eventDateTime.isAtSameMomentAs(now);
+        
+      } catch (e) {
+        print('Error parsing event date/time: $e');
+        return false; // Skip events with invalid date/time format
+      }
+    }).toList();
+
+    // Sort upcoming events by date and time (earliest first)
+    upcomingEvents.sort((a, b) {
+      final dataA = a.data();
+      final dataB = b.data();
+      
+      final dateA = dataA['date'] as String?;
+      final timeA = dataA['time'] as String?;
+      final dateB = dataB['date'] as String?;
+      final timeB = dataB['time'] as String?;
+      
+      if (dateA == null || timeA == null || dateB == null || timeB == null) {
+        return 0; // Keep original order if parsing fails
+      }
+      
+      try {
+        // Parse event A date and time
+        final datePartsA = dateA.split('/');
+        final timePartsA = timeA.split(':');
+        final dateTimeA = DateTime(
+          int.parse(datePartsA[2]), // year
+          int.parse(datePartsA[1]), // month
+          int.parse(datePartsA[0]), // day
+          int.parse(timePartsA[0]), // hour
+          int.parse(timePartsA[1]), // minute
+        );
+        
+        // Parse event B date and time
+        final datePartsB = dateB.split('/');
+        final timePartsB = timeB.split(':');
+        final dateTimeB = DateTime(
+          int.parse(datePartsB[2]), // year
+          int.parse(datePartsB[1]), // month
+          int.parse(datePartsB[0]), // day
+          int.parse(timePartsB[0]), // hour
+          int.parse(timePartsB[1]), // minute
+        );
+        
+        // Sort by DateTime (earliest first)
+        return dateTimeA.compareTo(dateTimeB);
+        
+      } catch (e) {
+        print('Error sorting events: $e');
+        return 0; // Keep original order if parsing fails
+      }
+    });
+    
+    return upcomingEvents;
   }
 
   Future<void> onTheLoad() async {
@@ -154,39 +248,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // Method to search events
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> _searchEvents(
-    String query,
-  ) {
-    if (query.isEmpty) return [];
 
-    final lowercaseQuery = query.toLowerCase();
-    print('Searching for: "$lowercaseQuery"');
-    print('Available events: ${_allEvents.length}');
-
-    final results = _allEvents.where((doc) {
-      final data = doc.data();
-      final name = (data['name'] ?? '').toString().toLowerCase();
-      final speaker = (data['speaker'] ?? '').toString().toLowerCase();
-      final description = (data['description'] ?? '').toString().toLowerCase();
-      final local = (data['local'] ?? '').toString().toLowerCase();
-
-      final matches =
-          name.contains(lowercaseQuery) ||
-          speaker.contains(lowercaseQuery) ||
-          description.contains(lowercaseQuery) ||
-          local.contains(lowercaseQuery);
-
-      if (matches) {
-        print('Match found: $name');
-      }
-
-      return matches;
-    }).toList();
-
-    print('Search results: ${results.length}');
-    return results;
-  }
 
   String labelFor(String value) {
     return categories
@@ -252,10 +314,12 @@ class _HomeState extends State<Home> {
           );
         }
 
-        // Update the all events list for search functionality
+        // Update the all events list for search functionality (keep all events for search)
         _allEvents = snapshot.data!.docs;
-        List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-            snapshot.data!.docs;
+        
+        // Filter for upcoming events only (for display in home page)
+        List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = _filterUpcomingEvents(snapshot.data!.docs);
+        
         // Apply client-side category filter to handle legacy data where
         // 'category' may contain either the slug value or the display name.
         if (selectedCategoryValue != null) {
@@ -286,16 +350,31 @@ class _HomeState extends State<Home> {
           print('First event: ${_allEvents.first.data()['name']}');
         }
         if (docs.isEmpty) {
-          final sem = 'Nenhuma palestra encontrada';
-          final comp = (selectedCategoryValue != null)
-              ? ' para "${labelFor(selectedCategoryValue!)}"'
-              : '';
+          String message;
+          if (selectedCategoryValue != null) {
+            message = 'Nenhuma palestra futura encontrada para "${labelFor(selectedCategoryValue!)}"';
+          } else {
+            message = 'Nenhuma palestra futura encontrada';
+          }
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            padding: EdgeInsets.symmetric(vertical: 24.0),
             child: Center(
-              child: Text(
-                sem + comp,
-                style: const TextStyle(fontSize: 16, color: Colors.black54),
+              child: Column(
+                children: [
+                  Icon(Icons.event_busy, size: 48, color: AppColors.grey),
+                  SizedBox(height: 8),
+                  Text(
+                    message,
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Verifique a página "Todas as Palestras" para ver eventos passados',
+                    style: TextStyle(fontSize: 12, color: AppColors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           );
@@ -523,8 +602,6 @@ class _HomeState extends State<Home> {
         child: Container(
           padding: EdgeInsets.only(
             top: AppSpacing.viewPortTop,
-            left: AppSpacing.viewPortSide,
-            right: AppSpacing.viewPortSide,
             bottom: AppSpacing.viewPortBottom,
           ),
           width: MediaQuery.of(context).size.width,
@@ -532,208 +609,36 @@ class _HomeState extends State<Home> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Olá, ${formatFirstAndLastName(userName)}! ',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Olá, ${formatFirstAndLastName(userName)}! ',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        AnimatedEmoji(_getAnimatedEmoji(selectedEmoji), size: 32),
+                      ],
                     ),
-                  ),
-                  AnimatedEmoji(_getAnimatedEmoji(selectedEmoji), size: 32),
-                ],
-              ),
-              SizedBox(height: AppSpacing.sm),
-              SearchAnchor(
-                builder: (BuildContext context, SearchController controller) {
-                  return SearchBar(
-                    backgroundColor: WidgetStatePropertyAll(Colors.white),
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: AppBorderRadius.md,
-                        side: BorderSide(color: Colors.grey),
-                      ),
+                    SizedBox(height: AppSpacing.sm),
+                    EventSearchWidget(
+                      eventsStream: eventStream!,
+                      formatFirstAndLastName: formatFirstAndLastName,
                     ),
-                    elevation: WidgetStatePropertyAll(0),
-                    hintText: 'Pesquisar palestras',
-                    controller: controller,
-                    padding: const WidgetStatePropertyAll<EdgeInsets>(
-                      EdgeInsets.symmetric(horizontal: 16.0),
-                    ),
-                    onTap: () {
-                      controller.openView();
-                    },
-                    onChanged: (value) {
-                      controller.openView();
-                    },
-                    leading: const Icon(Icons.search),
-                  );
-                },
-                suggestionsBuilder: (BuildContext context, SearchController controller) {
-                  final searchResults = _searchEvents(controller.text);
-                  print('Search query: "${controller.text}"');
-                  print('Search results count: ${searchResults.length}');
-                  print('Total events available: ${_allEvents.length}');
-
-                  if (searchResults.isEmpty && controller.text.isNotEmpty) {
-                    return [
-                      ListTile(
-                        title: Text(
-                          'Nenhuma palestra encontrada para "${controller.text}"',
-                        ),
-                        enabled: false,
-                      ),
-                    ];
-                  }
-
-                  // If search is empty, show all events
-                  if (searchResults.isEmpty && controller.text.isEmpty) {
-                    return _allEvents.map((doc) {
-                      final data = doc.data();
-                      final name = data['name'] ?? 'Sem título';
-                      final speaker = data['speaker'] ?? '';
-                      final date = data['date'] ?? '';
-                      final time = data['time'] ?? '';
-
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.btnPrimary,
-                          child: Icon(Icons.event, color: Colors.white),
-                        ),
-                        title: Text(
-                          name,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          '${formatFirstAndLastName(speaker)} • $date • $time',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        onTap: () {
-                          print('=== ALL EVENTS RESULT TAPPED ===');
-                          print('Event name: $name');
-                          print('Event ID: ${doc.id}');
-                          print('Event data: $data');
-
-                          // Close the search view first
-                          controller.closeView(name);
-
-                          // Use a delayed navigation to ensure the search view is closed
-                          Future.delayed(Duration(milliseconds: 100), () {
-                            try {
-                              print('Attempting navigation...');
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    print('Building DetailsPage...');
-                                    return DetailsPage(
-                                      image: data['image'] ?? '',
-                                      name: data['name'] ?? '',
-                                      local: data['local'] ?? '',
-                                      date: data['date'] ?? '',
-                                      time: data['time'] ?? '',
-                                      description: data['description'] ?? '',
-                                      speaker: data['speaker'] ?? '',
-                                      speakerImage: data['speakerImage'] ?? '',
-                                      eventId: doc.id,
-                                    );
-                                  },
-                                ),
-                              );
-                              print('Navigation successful!');
-                            } catch (e, stackTrace) {
-                              print('=== NAVIGATION ERROR ===');
-                              print('Error: $e');
-                              print('Stack trace: $stackTrace');
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Erro ao abrir detalhes: $e'),
-                                  duration: Duration(seconds: 3),
-                                ),
-                              );
-                            }
-                          });
-                        },
-                      );
-                    }).toList();
-                  }
-
-                  return searchResults.map((doc) {
-                    final data = doc.data();
-                    final name = data['name'] ?? 'Sem título';
-                    final speaker = data['speaker'] ?? '';
-                    final date = data['date'] ?? '';
-                    final time = data['time'] ?? '';
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: AppColors.btnPrimary,
-                        child: Icon(Icons.event, color: Colors.white),
-                      ),
-                      title: Text(
-                        name,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '${formatFirstAndLastName(speaker)} • $date • $time',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      onTap: () {
-                        print('=== SEARCH RESULT TAPPED ===');
-                        print('Event name: ${data['name']}');
-                        print('Event ID: ${doc.id}');
-                        print('Event data: $data');
-
-                        // Close the search view first
-                        controller.closeView(name);
-
-                        // Use a delayed navigation to ensure the search view is closed
-                        Future.delayed(Duration(milliseconds: 100), () {
-                          try {
-                            print('Attempting navigation...');
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  print('Building DetailsPage...');
-                                  return DetailsPage(
-                                    image: data['image'] ?? '',
-                                    name: data['name'] ?? '',
-                                    local: data['local'] ?? '',
-                                    date: data['date'] ?? '',
-                                    time: data['time'] ?? '',
-                                    description: data['description'] ?? '',
-                                    speaker: data['speaker'] ?? '',
-                                    speakerImage: data['speakerImage'] ?? '',
-                                    eventId: doc.id,
-                                  );
-                                },
-                              ),
-                            );
-                            print('Navigation successful!');
-                          } catch (e, stackTrace) {
-                            print('=== NAVIGATION ERROR ===');
-                            print('Error: $e');
-                            print('Stack trace: $stackTrace');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Erro ao abrir detalhes: $e'),
-                                duration: Duration(seconds: 3),
-                              ),
-                            );
-                          }
-                        });
-                      },
-                    );
-                  }).toList();
-                },
+                  ],
+                ),
               ),
               SizedBox(height: AppSpacing.md),
               SizedBox(
                 height: 150,
                 child: ListView.builder(
+                  padding: EdgeInsets.only(left: AppSpacing.viewPortSide),
                   scrollDirection: Axis.horizontal,
                   itemCount: categories.length,
                   itemBuilder: (context, index) {
@@ -744,7 +649,11 @@ class _HomeState extends State<Home> {
                     );
                     return Container(
                       width: 120,
-                      margin: EdgeInsets.only(right: 12),
+                      margin: EdgeInsets.only(
+                        right: index == categories.length - 1 
+                            ? AppSpacing.viewPortSide 
+                            : AppSpacing.sm,
+                      ),
                       child: Material(
                         elevation: 0,
                         borderRadius: BorderRadius.circular(24),
@@ -791,7 +700,8 @@ class _HomeState extends State<Home> {
                 ),
               ),
               SizedBox(height: AppSpacing.md),
-              Row(
+              Padding(padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
@@ -803,13 +713,23 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => _applyFilter(null),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AllEventsPage(),
+                        ),
+                      );
+                    },
                     child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
                   ),
                 ],
-              ),
+              ),),
               SizedBox(height: AppSpacing.md),
-              allEvents(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
+                child: allEvents(),
+              ),
             ],
           ),
         ),

@@ -10,11 +10,17 @@ class DatabaseMethods {
         .set(userInfoMap, SetOptions(merge: true));
   }
 
-  Future addEvent(Map<String, dynamic> userInfoMap, String id) async {
-    return await FirebaseFirestore.instance
-        .collection("events")
-        .doc(id)
-        .set(userInfoMap);
+  Future<bool> addEvent(Map<String, dynamic> userInfoMap, String id) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("events")
+          .doc(id)
+          .set(userInfoMap);
+      return true;
+    } catch (e) {
+      print("Error adding event: $e");
+      return false;
+    }
   }
 
   Future<Stream<QuerySnapshot>> getAllEvents() async {
@@ -170,6 +176,80 @@ class DatabaseMethods {
     return await FirebaseFirestore.instance
         .collection("lectures")
         .add(userInfoMap);
+  }
+
+  // Enhanced check-in methods with staff tracking
+  Future addUserCheckInWithStaff(Map<String, dynamic> userInfoMap, String userId, String staffId, String staffName) async {
+    // Add staff information to check-in details
+    userInfoMap['checkedInBy'] = {
+      'staffId': staffId,
+      'staffName': staffName,
+      'checkedInAt': FieldValue.serverTimestamp(),
+    };
+    
+    return await FirebaseFirestore.instance
+        .collection("users")
+        .doc(userId)
+        .collection("checkedIn")
+        .add(userInfoMap);
+  }
+
+  Future addEventCheckIn(Map<String, dynamic> userInfoMap, String eventId, String staffId, String staffName) async {
+    // Add staff information to check-in details
+    userInfoMap['checkedInBy'] = {
+      'staffId': staffId,
+      'staffName': staffName,
+      'checkedInAt': FieldValue.serverTimestamp(),
+    };
+    
+    return await FirebaseFirestore.instance
+        .collection("events")
+        .doc(eventId)
+        .collection("checkedIn")
+        .add(userInfoMap);
+  }
+
+  Future addStaffCheckInLog(Map<String, dynamic> userInfoMap, String staffId, String staffName) async {
+    // Add staff information to check-in details
+    userInfoMap['checkedInBy'] = {
+      'staffId': staffId,
+      'staffName': staffName,
+      'checkedInAt': FieldValue.serverTimestamp(),
+    };
+    
+    return await FirebaseFirestore.instance
+        .collection("staff")
+        .doc(staffId)
+        .collection("checkIns")
+        .add(userInfoMap);
+  }
+
+  // Get check-ins for a specific event
+  Stream<QuerySnapshot> getEventCheckIns(String eventId) {
+    return FirebaseFirestore.instance
+        .collection("events")
+        .doc(eventId)
+        .collection("checkedIn")
+        .orderBy('checkedInAt', descending: true)
+        .snapshots();
+  }
+
+  // Get check-ins performed by a specific staff member
+  Stream<QuerySnapshot> getStaffCheckIns(String staffId) {
+    return FirebaseFirestore.instance
+        .collection("staff")
+        .doc(staffId)
+        .collection("checkIns")
+        .orderBy('checkedInAt', descending: true)
+        .snapshots();
+  }
+
+  // Get all staff check-in logs (for admin audit)
+  Stream<QuerySnapshot> getAllStaffCheckIns() {
+    return FirebaseFirestore.instance
+        .collectionGroup("checkIns")
+        .orderBy('checkedInAt', descending: true)
+        .snapshots();
   }
 
   // Update an existing event
