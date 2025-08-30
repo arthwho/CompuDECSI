@@ -4,6 +4,7 @@ import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/widgets/event_search_widget.dart';
 import 'package:compudecsi/services/category_service.dart';
+import 'package:compudecsi/services/event_service.dart';
 import 'package:intl/intl.dart';
 
 class AllEventsPage extends StatefulWidget {
@@ -17,14 +18,14 @@ class _AllEventsPageState extends State<AllEventsPage> {
   Stream<QuerySnapshot<Map<String, dynamic>>>? eventStream;
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _allEvents = [];
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _filteredEvents = [];
-  
+
   // Filter states
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   String? selectedCategory;
   bool isFilterActive = false;
   bool isFiltersExpanded = false;
-  
+
   // Categories
   List<Map<String, dynamic>> categories = [];
 
@@ -46,7 +47,7 @@ class _AllEventsPageState extends State<AllEventsPage> {
       for (var cat in categoriesData) {
         print('Category: ${cat['name']} (${cat['value']})');
       }
-      
+
       if (mounted) {
         setState(() {
           categories = categoriesData;
@@ -97,7 +98,10 @@ class _AllEventsPageState extends State<AllEventsPage> {
     if (date != null) {
       setState(() {
         selectedDate = date;
-        isFilterActive = selectedDate != null || selectedTime != null || selectedCategory != null;
+        isFilterActive =
+            selectedDate != null ||
+            selectedTime != null ||
+            selectedCategory != null;
       });
       _applyFilters();
     }
@@ -111,7 +115,10 @@ class _AllEventsPageState extends State<AllEventsPage> {
     if (time != null) {
       setState(() {
         selectedTime = time;
-        isFilterActive = selectedDate != null || selectedTime != null || selectedCategory != null;
+        isFilterActive =
+            selectedDate != null ||
+            selectedTime != null ||
+            selectedCategory != null;
       });
       _applyFilters();
     }
@@ -158,9 +165,10 @@ class _AllEventsPageState extends State<AllEventsPage> {
             int.parse(parts[1]), // month
             int.parse(parts[0]), // day
           );
-          dateMatches = eventDateTime.year == selectedDate!.year &&
-                       eventDateTime.month == selectedDate!.month &&
-                       eventDateTime.day == selectedDate!.day;
+          dateMatches =
+              eventDateTime.year == selectedDate!.year &&
+              eventDateTime.month == selectedDate!.month &&
+              eventDateTime.day == selectedDate!.day;
         } catch (e) {
           dateMatches = false;
         }
@@ -172,8 +180,9 @@ class _AllEventsPageState extends State<AllEventsPage> {
           final timeParts = eventTime.split(':');
           final eventHour = int.parse(timeParts[0]);
           final eventMinute = int.parse(timeParts[1]);
-          timeMatches = eventHour == selectedTime!.hour &&
-                       eventMinute == selectedTime!.minute;
+          timeMatches =
+              eventHour == selectedTime!.hour &&
+              eventMinute == selectedTime!.minute;
         } catch (e) {
           timeMatches = false;
         }
@@ -241,209 +250,257 @@ class _AllEventsPageState extends State<AllEventsPage> {
           ),
           SizedBox(height: AppSpacing.md),
 
-                     // Filters Section
-           Padding(
-             padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
-             child: Column(
-               children: [
-                 // Filter Toggle Button
-                 InkWell(
-                   onTap: _toggleFilters,
-                   child: Container(
-                     width: double.infinity,
-                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                     decoration: BoxDecoration(
-                       border: Border.all(color: AppColors.border),
-                       borderRadius: BorderRadius.circular(12),
-                     ),
-                     child: Row(
-                       children: [
-                         Icon(Icons.filter_list, size: 20, color: AppColors.grey),
-                         SizedBox(width: 8),
-                         Text(
-                           'Filtros',
-                           style: TextStyle(
-                             color: AppColors.grey,
-                             fontSize: 14,
-                             fontWeight: FontWeight.w500,
-                           ),
-                         ),
-                         Spacer(),
-                         if (isFilterActive)
-                           Container(
-                             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                             decoration: BoxDecoration(
-                               color: AppColors.primary,
-                               borderRadius: BorderRadius.circular(10),
-                             ),
-                             child: Text(
-                               'Ativo',
-                               style: TextStyle(
-                                 color: Colors.white,
-                                 fontSize: 10,
-                                 fontWeight: FontWeight.w500,
-                               ),
-                             ),
-                           ),
-                         SizedBox(width: 8),
-                         Icon(
-                           isFiltersExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                           color: AppColors.grey,
-                           size: 20,
-                         ),
-                       ],
-                     ),
-                   ),
-                 ),
-                 
-                 // Collapsible Filters Content
-                 if (isFiltersExpanded) ...[
-                   SizedBox(height: 12),
-                   Column(
-                     children: [
-                       // First row: Date and Time filters
-                       Row(
-                         children: [
-                           // Date Filter
-                           Expanded(
-                             flex: 1,
-                             child: InkWell(
-                               onTap: _selectDate,
-                               child: Container(
-                                 padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                 decoration: BoxDecoration(
-                                   border: Border.all(color: AppColors.border),
-                                   borderRadius: BorderRadius.circular(12),
-                                 ),
-                                 child: Row(
-                                   children: [
-                                     Icon(Icons.calendar_today, size: 20, color: AppColors.grey),
-                                     SizedBox(width: 8),
-                                     Expanded(
-                                       child: Text(
-                                         selectedDate != null
-                                             ? DateFormat('dd/MM/yyyy').format(selectedDate!)
-                                             : 'Data',
-                                         style: TextStyle(
-                                           color: selectedDate != null ? Colors.black : AppColors.grey,
-                                           fontSize: 14,
-                                         ),
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                             ),
-                           ),
-                           SizedBox(width: 12),
+          // Filters Section
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
+            child: Column(
+              children: [
+                // Filter Toggle Button
+                InkWell(
+                  onTap: _toggleFilters,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.border),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.filter_list,
+                          size: 20,
+                          color: AppColors.grey,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Filtros',
+                          style: TextStyle(
+                            color: AppColors.grey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Spacer(),
+                        if (isFilterActive)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              'Ativo',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        SizedBox(width: 8),
+                        Icon(
+                          isFiltersExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: AppColors.grey,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
-                           // Time Filter
-                           Expanded(
-                             flex: 1,
-                             child: InkWell(
-                               onTap: _selectTime,
-                               child: Container(
-                                 padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                 decoration: BoxDecoration(
-                                   border: Border.all(color: AppColors.border),
-                                   borderRadius: BorderRadius.circular(12),
-                                 ),
-                                 child: Row(
-                                   children: [
-                                     Icon(Icons.access_time, size: 20, color: AppColors.grey),
-                                     SizedBox(width: 8),
-                                     Expanded(
-                                       child: Text(
-                                         selectedTime != null
-                                             ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
-                                             : 'Hora',
-                                         style: TextStyle(
-                                           color: selectedTime != null ? Colors.black : AppColors.grey,
-                                           fontSize: 14,
-                                         ),
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                             ),
-                           ),
+                // Collapsible Filters Content
+                if (isFiltersExpanded) ...[
+                  SizedBox(height: 12),
+                  Column(
+                    children: [
+                      // First row: Date and Time filters
+                      Row(
+                        children: [
+                          // Date Filter
+                          Expanded(
+                            flex: 1,
+                            child: InkWell(
+                              onTap: _selectDate,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColors.border),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today,
+                                      size: 20,
+                                      color: AppColors.grey,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        selectedDate != null
+                                            ? DateFormat(
+                                                'dd/MM/yyyy',
+                                              ).format(selectedDate!)
+                                            : 'Data',
+                                        style: TextStyle(
+                                          color: selectedDate != null
+                                              ? Colors.black
+                                              : AppColors.grey,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
 
-                           // Clear Filters Button
-                           if (isFilterActive) ...[
-                             SizedBox(width: 12),
-                             InkWell(
-                               onTap: _clearFilters,
-                               child: Container(
-                                 padding: EdgeInsets.all(12),
-                                 decoration: BoxDecoration(
-                                   color: AppColors.destructive,
-                                   borderRadius: BorderRadius.circular(12),
-                                 ),
-                                 child: Icon(Icons.clear, color: Colors.white, size: 20),
-                               ),
-                             ),
-                           ],
-                         ],
-                       ),
-                       
-                       // Second row: Category filter
-                       SizedBox(height: 12),
-                       Container(
-                         width: double.infinity,
-                         height: 48, // Match the height of time filter
-                         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                         decoration: BoxDecoration(
-                           border: Border.all(color: AppColors.border),
-                           borderRadius: BorderRadius.circular(12),
-                         ),
-                         child: DropdownButtonHideUnderline(
-                           child: DropdownButton<String>(
-                             value: selectedCategory,
-                             isExpanded: true,
-                             icon: Icon(Icons.arrow_drop_down, color: AppColors.grey),
-                             hint: Row(
-                               children: [
-                                 Icon(Icons.category, size: 20, color: AppColors.grey),
-                                 SizedBox(width: 8),
-                                 Text(
-                                   'Categoria',
-                                   style: TextStyle(
-                                     color: AppColors.grey,
-                                     fontSize: 14,
-                                   ),
-                                 ),
-                               ],
-                             ),
-                             items: [
-                               DropdownMenuItem<String>(
-                                 value: null,
-                                 child: Text('Todas as categorias'),
-                               ),
-                               ...categories.map((category) {
-                                 print('Creating dropdown item: ${category['name']} (${category['value']})');
-                                 return DropdownMenuItem<String>(
-                                   value: category['value'] as String,
-                                   child: Text(category['name'] as String),
-                                 );
-                               }).toList(),
-                             ],
-                             onChanged: (value) {
-                               setState(() {
-                                 selectedCategory = value;
-                                 isFilterActive = selectedDate != null || selectedTime != null || selectedCategory != null;
-                               });
-                               _applyFilters();
-                             },
-                           ),
-                         ),
-                       ),
-                     ],
-                   ),
-                 ],
-               ],
-             ),
-           ),
+                          // Time Filter
+                          Expanded(
+                            flex: 1,
+                            child: InkWell(
+                              onTap: _selectTime,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColors.border),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.access_time,
+                                      size: 20,
+                                      color: AppColors.grey,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        selectedTime != null
+                                            ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
+                                            : 'Hora',
+                                        style: TextStyle(
+                                          color: selectedTime != null
+                                              ? Colors.black
+                                              : AppColors.grey,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // Clear Filters Button
+                          if (isFilterActive) ...[
+                            SizedBox(width: 12),
+                            InkWell(
+                              onTap: _clearFilters,
+                              child: Container(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.destructive,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.clear,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+
+                      // Second row: Category filter
+                      SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        height: 48, // Match the height of time filter
+                        padding: EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.border),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedCategory,
+                            isExpanded: true,
+                            icon: Icon(
+                              Icons.arrow_drop_down,
+                              color: AppColors.grey,
+                            ),
+                            hint: Row(
+                              children: [
+                                Icon(
+                                  Icons.category,
+                                  size: 20,
+                                  color: AppColors.grey,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Categoria',
+                                  style: TextStyle(
+                                    color: AppColors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            items: [
+                              DropdownMenuItem<String>(
+                                value: null,
+                                child: Text('Todas as categorias'),
+                              ),
+                              ...categories.map((category) {
+                                print(
+                                  'Creating dropdown item: ${category['name']} (${category['value']})',
+                                );
+                                return DropdownMenuItem<String>(
+                                  value: category['value'] as String,
+                                  child: Text(category['name'] as String),
+                                );
+                              }).toList(),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                selectedCategory = value;
+                                isFilterActive =
+                                    selectedDate != null ||
+                                    selectedTime != null ||
+                                    selectedCategory != null;
+                              });
+                              _applyFilters();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
           SizedBox(height: AppSpacing.md),
 
           // Events List
@@ -488,7 +545,11 @@ class _AllEventsPageState extends State<AllEventsPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.filter_list_off, size: 64, color: AppColors.grey),
+                        Icon(
+                          Icons.filter_list_off,
+                          size: 64,
+                          color: AppColors.grey,
+                        ),
                         SizedBox(height: 16),
                         Text(
                           'Nenhuma palestra encontrada\ncom os filtros aplicados',
@@ -514,7 +575,9 @@ class _AllEventsPageState extends State<AllEventsPage> {
                 }
 
                 return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.viewPortSide,
+                  ),
                   itemCount: _filteredEvents.length,
                   itemBuilder: (context, index) {
                     final doc = _filteredEvents[index];
@@ -525,10 +588,11 @@ class _AllEventsPageState extends State<AllEventsPage> {
                     final time = data['time'] ?? '';
                     final local = data['local'] ?? '';
                     final description = data['description'] ?? '';
+                    final isFinished = EventService().isFinished(data);
 
-                                         return Container(
-                       margin: EdgeInsets.only(bottom: 2),
-                       child: Card(
+                    return Container(
+                      margin: EdgeInsets.only(bottom: 2),
+                      child: Card(
                         color: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -540,54 +604,85 @@ class _AllEventsPageState extends State<AllEventsPage> {
                           onTap: () => _navigateToEventDetails(data, doc.id),
                           child: Padding(
                             padding: EdgeInsets.all(16),
-                                                         child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Text(
-                                       name,
-                                       style: TextStyle(
-                                         fontWeight: FontWeight.bold,
-                                         fontSize: 16,
-                                       ),
-                                     ),
-                                     SizedBox(height: 4),
-                                     Text(
-                                       formatFirstAndLastName(speaker),
-                                       style: TextStyle(
-                                         color: AppColors.grey,
-                                         fontSize: 14,
-                                       ),
-                                     ),
-                                   ],
-                                 ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            name,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            formatFirstAndLastName(speaker),
+                                            style: TextStyle(
+                                              color: AppColors.grey,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isFinished
+                                            ? Colors.grey
+                                            : AppColors.accent,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        isFinished ? 'Finalizada' : 'Agendada',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 SizedBox(height: 12),
-                                                                 Row(
-                                   children: [
-                                     Text(
-                                       date,
-                                       style: TextStyle(
-                                         color: AppColors.grey,
-                                         fontSize: 12,
-                                       ),
-                                     ),
-                                     SizedBox(width: 16),
-                                     Text(
-                                       time,
-                                       style: TextStyle(
-                                         color: AppColors.grey,
-                                         fontSize: 12,
-                                       ),
-                                     ),
-                                   ],
-                                 ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      date,
+                                      style: TextStyle(
+                                        color: AppColors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    SizedBox(width: 16),
+                                    Text(
+                                      time,
+                                      style: TextStyle(
+                                        color: AppColors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 if (local.isNotEmpty) ...[
                                   SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      Icon(Icons.location_on, size: 16, color: AppColors.grey),
+                                      Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: AppColors.grey,
+                                      ),
                                       SizedBox(width: 4),
                                       Expanded(
                                         child: Text(

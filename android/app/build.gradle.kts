@@ -32,7 +32,7 @@ android {
         applicationId = "com.example.compudecsi"
 
         // Kotlin DSL: use minSdk/targetSdk como propriedades
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion.toInt()
 
         // versionCode precisa ser Int; versionName é String

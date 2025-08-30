@@ -95,9 +95,57 @@ class _BookingState extends State<Booking> {
             padding: EdgeInsets.all(16),
             itemCount: enrollments.length,
             itemBuilder: (context, index) {
-              final enrollment =
-                  enrollments[index].data() as Map<String, dynamic>;
-              final eventId = enrollment['eventId'] as String;
+              String? eventId;
+              try {
+                final enrollmentDoc = enrollments[index];
+                final enrollment = enrollmentDoc.data() as Map<String, dynamic>;
+                final path = enrollmentDoc.reference.path;
+
+                // Handle both old and new enrollment structures
+                if (path.startsWith('events/')) {
+                  // New structure: events/{eventId}/enrollments/{userId}
+                  final pathParts = path.split('/');
+                  if (pathParts.length >= 4) {
+                    eventId =
+                        pathParts[1]; // events/{eventId}/enrollments/{userId}
+                    print(
+                      'Processing NEW enrollment for eventId: $eventId, path: $path',
+                    );
+                  } else {
+                    print('Invalid NEW enrollment path: $path');
+                    return SizedBox.shrink();
+                  }
+                } else if (path.startsWith('enrollments/')) {
+                  // Old structure: enrollments/{userId}_{eventId}
+                  // Extract eventId from the document ID
+                  final docId = enrollmentDoc.id;
+                  final parts = docId.split('_');
+                  if (parts.length >= 2) {
+                    eventId = parts.last; // Take the last part as eventId
+                    print(
+                      'Processing OLD enrollment for eventId: $eventId, path: $path',
+                    );
+                  } else {
+                    print('Invalid OLD enrollment path: $path');
+                    return SizedBox.shrink();
+                  }
+                } else {
+                  print('Unknown enrollment path format: $path');
+                  return SizedBox.shrink();
+                }
+
+                if (eventId == null || eventId.isEmpty) {
+                  print('Empty eventId from path: $path');
+                  return SizedBox.shrink();
+                }
+              } catch (e) {
+                print('Error processing enrollment at index $index: $e');
+                return SizedBox.shrink();
+              }
+
+              if (eventId == null) {
+                return SizedBox.shrink();
+              }
 
               return FutureBuilder<DocumentSnapshot?>(
                 future: _databaseMethods.getEventById(eventId),

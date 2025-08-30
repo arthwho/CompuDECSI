@@ -56,17 +56,52 @@ class DatabaseMethods {
     }
   }
 
-  // Enrollment methods
+  // Enrollment methods - now stored as subcollections within events
   Future<String> enrollUserInEvent(String userId, String eventId) async {
     try {
+      // Get user information for analytics
+      final userDoc = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userId)
+          .get();
+
+      Map<String, dynamic> userData = {"userName": '', "userEmail": ''};
+
+      if (userDoc.exists) {
+        final userInfo = userDoc.data() as Map<String, dynamic>;
+        userData = {
+          "userName":
+              userInfo['Name'] ??
+              userInfo['name'] ??
+              userInfo['userName'] ??
+              '',
+          "userEmail":
+              userInfo['Email'] ??
+              userInfo['email'] ??
+              userInfo['userEmail'] ??
+              '',
+        };
+
+        // Debug: Print user info to see what's available
+        print("User document exists for $userId");
+        print("User info: $userInfo");
+        print("Extracted userName: ${userData['userName']}");
+        print("Extracted userEmail: ${userData['userEmail']}");
+      } else {
+        print("User document does not exist for $userId");
+      }
+
       // Generate a unique 6-digit enrollment code for this user in this event
       final code = await _generateUniqueEnrollmentCode(eventId);
       await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
           .collection("enrollments")
-          .doc("${userId}_${eventId}")
+          .doc(userId)
           .set({
             "userId": userId,
-            "eventId": eventId,
+            "userName": userData['userName'],
+            "userEmail": userData['userEmail'],
             "enrolledAt": FieldValue.serverTimestamp(),
             "enrollmentCode": code,
           });
@@ -80,8 +115,10 @@ class DatabaseMethods {
   Future<void> unenrollUserFromEvent(String userId, String eventId) async {
     try {
       await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
           .collection("enrollments")
-          .doc("${userId}_${eventId}")
+          .doc(userId)
           .delete();
     } catch (e) {
       print("Error unenrolling user from event: $e");
@@ -92,8 +129,10 @@ class DatabaseMethods {
   Future<bool> isUserEnrolledInEvent(String userId, String eventId) async {
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
           .collection("enrollments")
-          .doc("${userId}_${eventId}")
+          .doc(userId)
           .get();
       return doc.exists;
     } catch (e) {
@@ -105,8 +144,10 @@ class DatabaseMethods {
   Future<String?> getEnrollmentCode(String userId, String eventId) async {
     try {
       final doc = await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
           .collection("enrollments")
-          .doc("${userId}_${eventId}")
+          .doc(userId)
           .get();
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
@@ -139,8 +180,9 @@ class DatabaseMethods {
   Future<bool> _codeExistsForEvent(String eventId, String code) async {
     try {
       final snapshot = await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
           .collection("enrollments")
-          .where("eventId", isEqualTo: eventId)
           .where("enrollmentCode", isEqualTo: code)
           .limit(1)
           .get();
@@ -152,10 +194,25 @@ class DatabaseMethods {
     }
   }
 
+  // Get all enrollments for a specific event
+  Stream<QuerySnapshot> getEventEnrollments(String eventId) {
+    try {
+      return FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
+          .collection("enrollments")
+          .snapshots();
+    } catch (e) {
+      print("Error getting event enrollments: $e");
+      throw e;
+    }
+  }
+
+  // Get all events where a user is enrolled (requires collection group query)
   Stream<QuerySnapshot> getUserEnrolledEvents(String userId) {
     try {
       return FirebaseFirestore.instance
-          .collection("enrollments")
+          .collectionGroup("enrollments")
           .where("userId", isEqualTo: userId)
           .snapshots();
     } catch (e) {
@@ -172,21 +229,20 @@ class DatabaseMethods {
         .add(userInfoMap);
   }
 
-  Future addAdminCheckIn(Map<String, dynamic> userInfoMap) async {
-    return await FirebaseFirestore.instance
-        .collection("lectures")
-        .add(userInfoMap);
-  }
-
   // Enhanced check-in methods with staff tracking
-  Future addUserCheckInWithStaff(Map<String, dynamic> userInfoMap, String userId, String staffId, String staffName) async {
+  Future addUserCheckInWithStaff(
+    Map<String, dynamic> userInfoMap,
+    String userId,
+    String staffId,
+    String staffName,
+  ) async {
     // Add staff information to check-in details
     userInfoMap['checkedInBy'] = {
       'staffId': staffId,
       'staffName': staffName,
       'checkedInAt': FieldValue.serverTimestamp(),
     };
-    
+
     return await FirebaseFirestore.instance
         .collection("users")
         .doc(userId)
@@ -194,14 +250,43 @@ class DatabaseMethods {
         .add(userInfoMap);
   }
 
-  Future addEventCheckIn(Map<String, dynamic> userInfoMap, String eventId, String staffId, String staffName) async {
+  Future addEventCheckIn(
+    Map<String, dynamic> userInfoMap,
+    String eventId,
+    String staffId,
+    String staffName,
+  ) async {
+    // Get user information for analytics if not already present
+    if (!userInfoMap.containsKey('userName') ||
+        !userInfoMap.containsKey('userEmail')) {
+      final userId = userInfoMap['userId'];
+      if (userId != null) {
+        try {
+          final userDoc = await FirebaseFirestore.instance
+              .collection("users")
+              .doc(userId)
+              .get();
+
+          if (userDoc.exists) {
+            final userInfo = userDoc.data() as Map<String, dynamic>;
+            userInfoMap['userName'] =
+                userInfo['Name'] ?? userInfo['name'] ?? '';
+            userInfoMap['userEmail'] =
+                userInfo['Email'] ?? userInfo['email'] ?? '';
+          }
+        } catch (e) {
+          print("Error fetching user info for check-in: $e");
+        }
+      }
+    }
+
     // Add staff information to check-in details
     userInfoMap['checkedInBy'] = {
       'staffId': staffId,
       'staffName': staffName,
       'checkedInAt': FieldValue.serverTimestamp(),
     };
-    
+
     return await FirebaseFirestore.instance
         .collection("events")
         .doc(eventId)
@@ -209,14 +294,42 @@ class DatabaseMethods {
         .add(userInfoMap);
   }
 
-  Future addStaffCheckInLog(Map<String, dynamic> userInfoMap, String staffId, String staffName) async {
+  Future addStaffCheckInLog(
+    Map<String, dynamic> userInfoMap,
+    String staffId,
+    String staffName,
+  ) async {
+    // Get user information for analytics if not already present
+    if (!userInfoMap.containsKey('userName') ||
+        !userInfoMap.containsKey('userEmail')) {
+      final userId = userInfoMap['userId'];
+      if (userId != null) {
+        try {
+          final userDoc = await FirebaseFirestore.instance
+              .collection("users")
+              .doc(userId)
+              .get();
+
+          if (userDoc.exists) {
+            final userInfo = userDoc.data() as Map<String, dynamic>;
+            userInfoMap['userName'] =
+                userInfo['Name'] ?? userInfo['name'] ?? '';
+            userInfoMap['userEmail'] =
+                userInfo['Email'] ?? userInfo['email'] ?? '';
+          }
+        } catch (e) {
+          print("Error fetching user info for staff check-in log: $e");
+        }
+      }
+    }
+
     // Add staff information to check-in details
     userInfoMap['checkedInBy'] = {
       'staffId': staffId,
       'staffName': staffName,
       'checkedInAt': FieldValue.serverTimestamp(),
     };
-    
+
     return await FirebaseFirestore.instance
         .collection("staff")
         .doc(staffId)

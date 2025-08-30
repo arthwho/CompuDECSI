@@ -926,17 +926,24 @@ class _DetailsPageState extends State<DetailsPage> {
         "Speaker": widget.speaker,
         "Location": widget.local,
       };
-      await DatabaseMethods().addUserCheckIn(checkInDetail, id!).then((
-        value,
-      ) async {
-        await DatabaseMethods().addAdminCheckIn(checkInDetail);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Checkin realizado com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
+      await DatabaseMethods().addUserCheckIn(checkInDetail, id!);
+
+      // Also add to event check-ins for better organization
+      if (widget.eventId != null) {
+        await DatabaseMethods().addEventCheckIn(
+          checkInDetail,
+          widget.eventId!,
+          '',
+          'User Self-Check-in',
         );
-      });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Checkin realizado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       print(e);
     }
