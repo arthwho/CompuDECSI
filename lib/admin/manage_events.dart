@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/services/category_service.dart';
+import 'package:compudecsi/services/event_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/utils/variables.dart';
@@ -173,29 +174,43 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
     }
   }
 
-  String _getStatusText(String status) {
+  String _getStatusText(Map<String, dynamic> event) {
+    // Use EventService to determine if event is finished
+    final isFinished = EventService().isFinished(event);
+    final status = event['status'] ?? 'scheduled';
+
+    if (isFinished) {
+      return 'Finalizado';
+    }
+
     switch (status) {
-      case 'scheduled':
-        return 'Agendado';
       case 'live':
         return 'Ao Vivo';
       case 'finished':
         return 'Finalizado';
+      case 'scheduled':
       default:
-        return status;
+        return 'Agendado';
     }
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(Map<String, dynamic> event) {
+    // Use EventService to determine if event is finished
+    final isFinished = EventService().isFinished(event);
+    final status = event['status'] ?? 'scheduled';
+
+    if (isFinished) {
+      return Colors.grey;
+    }
+
     switch (status) {
-      case 'scheduled':
-        return Colors.blue;
       case 'live':
         return Colors.green;
       case 'finished':
         return Colors.grey;
+      case 'scheduled':
       default:
-        return Colors.black;
+        return Colors.blue;
     }
   }
 
@@ -233,7 +248,13 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
 
         // Status filter
         final matchesStatus =
-            selectedStatusFilter == 'all' || status == selectedStatusFilter;
+            selectedStatusFilter == 'all' ||
+            (selectedStatusFilter == 'finished' &&
+                EventService().isFinished(event)) ||
+            (selectedStatusFilter == 'scheduled' &&
+                !EventService().isFinished(event) &&
+                status != 'live') ||
+            (selectedStatusFilter == 'live' && status == 'live');
 
         return matchesSearch && matchesStatus;
       }).toList();
@@ -308,6 +329,41 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
     );
   }
 
+  Future<void> _syncEventStatuses() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      await EventService().syncStatuses();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Status dos eventos sincronizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      // Reload events to show updated statuses
+      await _reloadEventsWithRole();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao sincronizar status: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -332,6 +388,12 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         actions: [
+          if (userRole == 'admin')
+            IconButton(
+              icon: const Icon(Icons.sync),
+              onPressed: _syncEventStatuses,
+              tooltip: 'Sincronizar status dos eventos',
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _reloadEventsWithRole,
@@ -591,20 +653,16 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: _getStatusColor(
-                                            event['status'] ?? 'scheduled',
+                                            event,
                                           ).withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
                                         ),
                                         child: Text(
-                                          _getStatusText(
-                                            event['status'] ?? 'scheduled',
-                                          ),
+                                          _getStatusText(event),
                                           style: TextStyle(
-                                            color: _getStatusColor(
-                                              event['status'] ?? 'scheduled',
-                                            ),
+                                            color: _getStatusColor(event),
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
                                           ),

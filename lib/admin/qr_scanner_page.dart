@@ -35,7 +35,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             .collection('users')
             .doc(user.uid)
             .get();
-        
+
         if (userDoc.exists) {
           final userData = userDoc.data()!;
           setState(() {
@@ -196,14 +196,22 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   Future<Map<String, dynamic>?> _findEnrollmentByCode(String code) async {
     try {
+      // Use collection group query to search across all enrollments subcollections
       final snapshot = await FirebaseFirestore.instance
-          .collection('enrollments')
+          .collectionGroup('enrollments')
           .where('enrollmentCode', isEqualTo: code)
           .limit(1)
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        return {'id': snapshot.docs.first.id, ...snapshot.docs.first.data()};
+        final doc = snapshot.docs.first;
+        final data = doc.data();
+        // Extract eventId from the document path
+        final pathParts = doc.reference.path.split('/');
+        final eventId =
+            pathParts[pathParts.length -
+                3]; // events/{eventId}/enrollments/{userId}
+        return {'id': doc.id, 'eventId': eventId, ...data};
       }
       return null;
     } catch (e) {
@@ -348,20 +356,38 @@ class _QRScannerPageState extends State<QRScannerPage> {
       // Use enhanced check-in methods with staff tracking
       if (_staffId != null && _staffName != null) {
         // Add to user check-ins with staff info
-        await DatabaseMethods().addUserCheckInWithStaff(checkInDetail, userId, _staffId!, _staffName!);
-        
+        await DatabaseMethods().addUserCheckInWithStaff(
+          checkInDetail,
+          userId,
+          _staffId!,
+          _staffName!,
+        );
+
         // Add to event check-ins (for event-specific tracking)
-        await DatabaseMethods().addEventCheckIn(checkInDetail, eventId, _staffId!, _staffName!);
-        
+        await DatabaseMethods().addEventCheckIn(
+          checkInDetail,
+          eventId,
+          _staffId!,
+          _staffName!,
+        );
+
         // Add to staff check-in logs (for staff accountability)
-        await DatabaseMethods().addStaffCheckInLog(checkInDetail, _staffId!, _staffName!);
-        
-        // Keep legacy admin check-in for backward compatibility
-        await DatabaseMethods().addAdminCheckIn(checkInDetail);
+        await DatabaseMethods().addStaffCheckInLog(
+          checkInDetail,
+          _staffId!,
+          _staffName!,
+        );
       } else {
         // Fallback to original methods if staff info is not available
         await DatabaseMethods().addUserCheckIn(checkInDetail, userId);
-        await DatabaseMethods().addAdminCheckIn(checkInDetail);
+
+        // Also add to event check-ins for better organization
+        await DatabaseMethods().addEventCheckIn(
+          checkInDetail,
+          eventId,
+          '',
+          'Admin Check-in',
+        );
       }
 
       // Close dialog

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FeedbackEntry {
   final String id;
-  final String eventId;
+  final String? eventId; // Optional now since it's in the document path
   final String? sessionId;
   final String userId;
   final int rating; // 1..5
@@ -11,7 +11,7 @@ class FeedbackEntry {
 
   FeedbackEntry({
     required this.id,
-    required this.eventId,
+    this.eventId,
     required this.userId,
     required this.rating,
     required this.createdAt,
@@ -34,7 +34,7 @@ class FeedbackEntry {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     return FeedbackEntry(
       id: doc.id,
-      eventId: data['eventId'] as String,
+      eventId: data['eventId'] as String?, // Optional now
       sessionId: data['sessionId'] as String?,
       userId: data['userId'] as String,
       rating: (data['rating'] as num).toInt(),
