@@ -357,10 +357,18 @@ class DatabaseMethods {
         .snapshots();
   }
 
-  // Get all staff check-in logs (for admin audit)
+  // Get all staff check-in logs (for admin audit) - OLD STRUCTURE
   Stream<QuerySnapshot> getAllStaffCheckIns() {
     return FirebaseFirestore.instance
         .collectionGroup("checkIns")
+        .orderBy('checkedInAt', descending: true)
+        .snapshots();
+  }
+
+  // Get all check-ins from all events (for admin audit) - NEW STRUCTURE
+  Stream<QuerySnapshot> getAllEventCheckIns() {
+    return FirebaseFirestore.instance
+        .collectionGroup("checkedIn")
         .orderBy('checkedInAt', descending: true)
         .snapshots();
   }
@@ -437,5 +445,21 @@ class DatabaseMethods {
       );
     }
     return DateTime.now();
+  }
+
+  // Check if a user has checked-in to a specific event
+  Future<bool> isUserCheckedInToEvent(String userId, String eventId) async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection("events")
+          .doc(eventId)
+          .collection("checkedIn")
+          .doc(userId)
+          .get();
+      return doc.exists;
+    } catch (e) {
+      print("Error checking check-in status: $e");
+      return false;
+    }
   }
 }

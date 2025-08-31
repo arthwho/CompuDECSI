@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/models/feedback.dart' as model;
+import 'package:compudecsi/services/database.dart';
 
 class FeedbackService {
   final _db = FirebaseFirestore.instance;
@@ -70,5 +71,14 @@ class FeedbackService {
       (acc, e) => acc + ((e.data()['rating'] as num).toInt()),
     );
     return sum / snap.docs.length;
+  }
+
+  // Check if the current user can submit feedback for an event
+  Future<bool> canUserSubmitFeedback(String eventId) async {
+    final uid = currentUserId;
+    if (uid == null) return false;
+
+    // Check if user has checked-in to this event
+    return await DatabaseMethods().isUserCheckedInToEvent(uid, eventId);
   }
 }

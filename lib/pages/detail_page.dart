@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/admin/manage_events.dart';
 import 'package:compudecsi/widgets/qr_code_bottom_sheet.dart';
+import 'dart:async';
 
 // ignore: must_be_immutable
 class DetailsPage extends StatefulWidget {
@@ -42,6 +43,9 @@ class _DetailsPageState extends State<DetailsPage> {
   bool _isFinished = false;
   bool _isEnrolled = false;
   bool _isLoadingEnrollment = true;
+  bool _isEventStarted = false;
+  String _countdownText = '';
+  Timer? _countdownTimer;
   String? userRole;
   String? currentUserName;
 
@@ -49,6 +53,12 @@ class _DetailsPageState extends State<DetailsPage> {
   void initState() {
     super.initState();
     ontheload();
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
   }
 
   ontheload() async {
@@ -63,6 +73,9 @@ class _DetailsPageState extends State<DetailsPage> {
       await _fetchEvent();
       await _checkEnrollmentStatus();
     }
+
+    // Start countdown timer for Q&A
+    _startCountdownTimer();
 
     setState(() {});
   }
@@ -266,6 +279,44 @@ class _DetailsPageState extends State<DetailsPage> {
     } catch (e) {
       print('❌ Error parsing date/time: $e');
       return null;
+    }
+  }
+
+  void _startCountdownTimer() {
+    final eventDateTime = _parseEventDateTime(widget.date, widget.time);
+    if (eventDateTime == null) return;
+
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final now = DateTime.now();
+      final difference = eventDateTime.difference(now);
+
+      if (difference.isNegative) {
+        // Event has started
+        setState(() {
+          _isEventStarted = true;
+          _countdownText = '';
+        });
+        timer.cancel();
+      } else {
+        // Event hasn't started yet, update countdown
+        setState(() {
+          _isEventStarted = false;
+          _countdownText = _formatCountdown(difference);
+        });
+      }
+    });
+  }
+
+  String _formatCountdown(Duration difference) {
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ${difference.inHours % 24}h ${difference.inMinutes % 60}m';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ${difference.inMinutes % 60}m ${difference.inSeconds % 60}s';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ${difference.inSeconds % 60}s';
+    } else {
+      return '${difference.inSeconds}s';
     }
   }
 
@@ -831,8 +882,8 @@ class _DetailsPageState extends State<DetailsPage> {
                   ),
                 ),
               ),
-            // Q&A and Check-in buttons (only show when enrolled)
-            if (_isEnrolled && !_isLoadingEnrollment)
+            // Q&A and Check-in buttons (only show when enrolled and event is not finished)
+            if (_isEnrolled && !_isLoadingEnrollment && !_isFinished)
               Container(
                 child: Column(
                   children: [
@@ -853,9 +904,9 @@ class _DetailsPageState extends State<DetailsPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: FilledButton(
-                              onPressed: _isFinished
-                                  ? null
-                                  : () {
+                              onPressed:
+                                  (userRole == 'admin' || _isEventStarted)
+                                  ? () {
                                       final sessionId =
                                           widget.eventId ??
                                           widget.name.trim().toLowerCase();
@@ -868,16 +919,41 @@ class _DetailsPageState extends State<DetailsPage> {
                                           ),
                                         ),
                                       );
-                                    },
+                                    }
+                                  : null,
                               style: FilledButton.styleFrom(
                                 backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white,
+                                foregroundColor:
+                                    (userRole == 'admin' || _isEventStarted)
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.6),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                              child: Text(
-                                _isFinished
-                                    ? 'Q&A indisponível (finalizado)'
-                                    : 'Participar do Q&A',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Participar do Q&A',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  if (!_isEventStarted &&
+                                      _countdownText.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Abre em $_countdownText',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.white.withOpacity(0.8),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ),

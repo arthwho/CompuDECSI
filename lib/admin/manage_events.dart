@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/admin/edit_event_page.dart';
 import 'package:compudecsi/admin/upload_event.dart';
+import 'package:compudecsi/admin/feedback_dashboard.dart';
+import 'package:compudecsi/services/feedback_service.dart';
 
 class ManageEventsPage extends StatefulWidget {
   const ManageEventsPage({super.key});
@@ -329,6 +331,18 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
     );
   }
 
+  void _showEventFeedback(Map<String, dynamic> event) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _EventFeedbackList(
+          eventId: event['id'],
+          title: event['name'] ?? 'Evento',
+        ),
+      ),
+    );
+  }
+
   Future<void> _syncEventStatuses() async {
     try {
       setState(() {
@@ -545,6 +559,18 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                                             ),
                                           ],
                                         ),
+                                      // Feedback button for admins and speakers
+                                      if (userRole == 'admin' ||
+                                          userRole == 'speaker')
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.feedback,
+                                            color: Colors.orange,
+                                          ),
+                                          onPressed: () =>
+                                              _showEventFeedback(event),
+                                          tooltip: 'Ver feedback do evento',
+                                        ),
                                     ],
                                   ),
                                 ),
@@ -680,6 +706,49 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EventFeedbackList extends StatelessWidget {
+  final String eventId;
+  final String title;
+  const _EventFeedbackList({required this.eventId, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final service = FeedbackService();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Feedback — $title'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
+      body: StreamBuilder(
+        stream: service.watchEventFeedback(eventId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final items = (snapshot.data as List?) ?? const [];
+          if (items.isEmpty) {
+            return const Center(child: Text('Sem feedbacks ainda.'));
+          }
+          return ListView.separated(
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final entry = items[index];
+              return ListTile(
+                leading: Icon(Icons.star, color: Colors.amber[700]),
+                title: Text('Nota: ${entry.rating}'),
+                subtitle: Text(entry.comment ?? '-'),
+                dense: true,
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -12,7 +12,8 @@ class CheckinAuditPage extends StatefulWidget {
   State<CheckinAuditPage> createState() => _CheckinAuditPageState();
 }
 
-class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerProviderStateMixin {
+class _CheckinAuditPageState extends State<CheckinAuditPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String searchQuery = '';
   TextEditingController searchController = TextEditingController();
@@ -30,19 +31,28 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
     super.dispose();
   }
 
+  // Helper method to get user name from check-in data
+  String _getUserName(Map<String, dynamic> data) {
+    return data['userName'] ?? data['name'] ?? 'N/A';
+  }
+
   // Filter check-ins based on search query
-  List<QueryDocumentSnapshot> _filterCheckins(List<QueryDocumentSnapshot> checkins) {
+  List<QueryDocumentSnapshot> _filterCheckins(
+    List<QueryDocumentSnapshot> checkins,
+  ) {
     if (searchQuery.isEmpty) return checkins;
-    
+
     return checkins.where((checkin) {
       final data = checkin.data() as Map<String, dynamic>;
-      final userName = (data['name'] ?? '').toString().toLowerCase();
+      final userName = _getUserName(data).toLowerCase();
       final eventName = (data['lectureName'] ?? '').toString().toLowerCase();
-      final staffName = (data['checkedInBy']?['staffName'] ?? '').toString().toLowerCase();
-      
+      final staffName = (data['checkedInBy']?['staffName'] ?? '')
+          .toString()
+          .toLowerCase();
+
       return userName.contains(searchQuery.toLowerCase()) ||
-             eventName.contains(searchQuery.toLowerCase()) ||
-             staffName.contains(searchQuery.toLowerCase());
+          eventName.contains(searchQuery.toLowerCase()) ||
+          staffName.contains(searchQuery.toLowerCase());
     }).toList();
   }
 
@@ -101,7 +111,7 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
               },
             ),
           ),
-          
+
           // Tab content
           Expanded(
             child: TabBarView(
@@ -132,25 +142,21 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
     return _buildAllEventsCheckinsList();
   }
 
-
-
   Widget _buildAllEventsCheckinsList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: DatabaseMethods().getAllStaffCheckIns(),
+      stream: DatabaseMethods().getAllEventCheckIns(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Text('Nenhum check-in encontrado'),
-          );
+          return const Center(child: Text('Nenhum check-in encontrado'));
         }
 
         final allCheckins = snapshot.data!.docs;
         final filteredCheckins = _filterCheckins(allCheckins);
-        
+
         if (filteredCheckins.isEmpty && searchQuery.isNotEmpty) {
           return Center(
             child: Column(
@@ -160,10 +166,7 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
                 const SizedBox(height: 16),
                 Text(
                   'Nenhum resultado encontrado para "$searchQuery"',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -174,9 +177,10 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
           padding: const EdgeInsets.all(16),
           itemCount: filteredCheckins.length,
           itemBuilder: (context, index) {
-            final checkin = filteredCheckins[index].data() as Map<String, dynamic>;
+            final checkin =
+                filteredCheckins[index].data() as Map<String, dynamic>;
             final checkedInBy = checkin['checkedInBy'] as Map<String, dynamic>?;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
@@ -192,12 +196,17 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Evento: ${checkin['lectureName'] ?? 'N/A'}'),
-                    Text('Data: ${checkin['date'] ?? 'N/A'} - ${checkin['time'] ?? 'N/A'}'),
+                    Text(
+                      'Data: ${checkin['date'] ?? 'N/A'} - ${checkin['time'] ?? 'N/A'}',
+                    ),
                     if (checkedInBy != null)
-                      Text('Check-in por: ${checkedInBy['staffName'] ?? 'N/A'}'),
+                      Text(
+                        'Check-in por: ${checkedInBy['staffName'] ?? 'N/A'}',
+                      ),
                   ],
                 ),
-                trailing: checkedInBy != null && checkedInBy['checkedInAt'] != null
+                trailing:
+                    checkedInBy != null && checkedInBy['checkedInAt'] != null
                     ? Text(
                         DateFormat('HH:mm').format(
                           (checkedInBy['checkedInAt'] as Timestamp).toDate(),
@@ -215,7 +224,7 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
 
   Widget _buildStaffCheckinsTab() {
     return StreamBuilder<QuerySnapshot>(
-      stream: DatabaseMethods().getAllStaffCheckIns(),
+      stream: DatabaseMethods().getAllEventCheckIns(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -229,7 +238,7 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
 
         final allCheckins = snapshot.data!.docs;
         final filteredCheckins = _filterCheckins(allCheckins);
-        
+
         if (filteredCheckins.isEmpty && searchQuery.isNotEmpty) {
           return Center(
             child: Column(
@@ -239,16 +248,13 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
                 const SizedBox(height: 16),
                 Text(
                   'Nenhum resultado encontrado para "$searchQuery"',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
               ],
             ),
           );
         }
-        
+
         // Group by staff member
         Map<String, List<QueryDocumentSnapshot>> staffCheckins = {};
         for (var checkin in filteredCheckins) {
@@ -266,22 +272,29 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
           itemBuilder: (context, index) {
             final staffId = staffCheckins.keys.elementAt(index);
             final staffCheckinsList = staffCheckins[staffId]!;
-            final firstCheckin = staffCheckinsList.first.data() as Map<String, dynamic>;
-            final checkedInBy = firstCheckin['checkedInBy'] as Map<String, dynamic>?;
+            final firstCheckin =
+                staffCheckinsList.first.data() as Map<String, dynamic>;
+            final checkedInBy =
+                firstCheckin['checkedInBy'] as Map<String, dynamic>?;
             final staffName = checkedInBy?['staffName'] ?? 'Staff Member';
 
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               child: ExpansionTile(
                 title: Text(staffName),
-                subtitle: Text('${staffCheckinsList.length} check-ins realizados'),
+                subtitle: Text(
+                  '${staffCheckinsList.length} check-ins realizados',
+                ),
                 children: staffCheckinsList.map((checkin) {
                   final data = checkin.data() as Map<String, dynamic>;
-                  final checkinTime = data['checkedInBy']?['checkedInAt'] as Timestamp?;
-                  
+                  final checkinTime =
+                      data['checkedInBy']?['checkedInAt'] as Timestamp?;
+
                   return ListTile(
-                    title: Text(data['name'] ?? 'N/A'),
-                    subtitle: Text('${data['lectureName'] ?? 'N/A'} - ${data['date'] ?? 'N/A'}'),
+                    title: Text(_getUserName(data)),
+                    subtitle: Text(
+                      '${data['lectureName'] ?? 'N/A'} - ${data['date'] ?? 'N/A'}',
+                    ),
                     trailing: checkinTime != null
                         ? Text(
                             DateFormat('HH:mm').format(checkinTime.toDate()),
@@ -300,21 +313,19 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
 
   Widget _buildAllCheckinsTab() {
     return StreamBuilder<QuerySnapshot>(
-      stream: DatabaseMethods().getAllStaffCheckIns(),
+      stream: DatabaseMethods().getAllEventCheckIns(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Text('Nenhum check-in encontrado'),
-          );
+          return const Center(child: Text('Nenhum check-in encontrado'));
         }
 
         final allCheckins = snapshot.data!.docs;
         final filteredCheckins = _filterCheckins(allCheckins);
-        
+
         // Sort by most recent check-in time
         filteredCheckins.sort((a, b) {
           final aData = a.data() as Map<String, dynamic>;
@@ -323,14 +334,14 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
           final bCheckedInBy = bData['checkedInBy'] as Map<String, dynamic>?;
           final aTimestamp = aCheckedInBy?['checkedInAt'] as Timestamp?;
           final bTimestamp = bCheckedInBy?['checkedInAt'] as Timestamp?;
-          
+
           if (aTimestamp == null && bTimestamp == null) return 0;
           if (aTimestamp == null) return 1;
           if (bTimestamp == null) return -1;
-          
+
           return bTimestamp.compareTo(aTimestamp); // Most recent first
         });
-        
+
         if (filteredCheckins.isEmpty && searchQuery.isNotEmpty) {
           return Center(
             child: Column(
@@ -340,10 +351,7 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
                 const SizedBox(height: 16),
                 Text(
                   'Nenhum resultado encontrado para "$searchQuery"',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -354,9 +362,10 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
           padding: const EdgeInsets.all(16),
           itemCount: filteredCheckins.length,
           itemBuilder: (context, index) {
-            final checkin = filteredCheckins[index].data() as Map<String, dynamic>;
+            final checkin =
+                filteredCheckins[index].data() as Map<String, dynamic>;
             final checkedInBy = checkin['checkedInBy'] as Map<String, dynamic>?;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
@@ -372,12 +381,17 @@ class _CheckinAuditPageState extends State<CheckinAuditPage> with SingleTickerPr
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Evento: ${checkin['lectureName'] ?? 'N/A'}'),
-                    Text('Data: ${checkin['date'] ?? 'N/A'} - ${checkin['time'] ?? 'N/A'}'),
+                    Text(
+                      'Data: ${checkin['date'] ?? 'N/A'} - ${checkin['time'] ?? 'N/A'}',
+                    ),
                     if (checkedInBy != null)
-                      Text('Check-in por: ${checkedInBy['staffName'] ?? 'N/A'}'),
+                      Text(
+                        'Check-in por: ${checkedInBy['staffName'] ?? 'N/A'}',
+                      ),
                   ],
                 ),
-                trailing: checkedInBy != null && checkedInBy['checkedInAt'] != null
+                trailing:
+                    checkedInBy != null && checkedInBy['checkedInAt'] != null
                     ? Text(
                         DateFormat('HH:mm').format(
                           (checkedInBy['checkedInAt'] as Timestamp).toDate(),
