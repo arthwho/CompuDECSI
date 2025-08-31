@@ -79,25 +79,14 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/Onboarding.gif
-    - assets/google.png
-    - assets/icea.png
-    - assets/compudecsi.png
-    - assets/gradient_radial.png
-    - assets/noun.png
     - assets/checkin_onboarding.png
-    - assets/qanda_onboarding.png
-    - assets/compudecsi_onboarding.png
-    - assets/littlenoun.png
     - assets/checkin_onboarding.svg
-    - assets/qanda_onboarding.svg
+    - assets/compudecsi.png
+    - assets/compudecsi_onboarding.png
     - assets/compudecsi_onboarding.svg
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
+    - assets/google.png
+    - assets/qanda_onboarding.png
+    - assets/qanda_onboarding.svg
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a

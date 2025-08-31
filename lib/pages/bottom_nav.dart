@@ -5,6 +5,7 @@ import 'package:compudecsi/pages/booking.dart';
 import 'package:compudecsi/pages/home.dart';
 import 'package:compudecsi/pages/profile.dart';
 import 'package:compudecsi/admin/admin_panel.dart';
+import 'package:compudecsi/admin/manage_events.dart';
 import 'package:compudecsi/admin/qr_scanner_page.dart';
 import 'package:compudecsi/admin/checkin_audit_page.dart';
 
@@ -97,24 +98,35 @@ class _BottomNavState extends State<BottomNav> {
           floatingActionButton: hasAdminAccess
               ? FloatingActionButton.extended(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const AdminPanel()),
-                    );
+                    if (isSpeaker) {
+                      // For lecturers (speakers), navigate to manage events page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ManageEventsPage(),
+                        ),
+                      );
+                    } else {
+                      // For admins, navigate to admin panel
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AdminPanel()),
+                      );
+                    }
                   },
                   icon: Icon(
-                    isAdmin
-                        ? Icons.admin_panel_settings
-                        : Icons.add_circle_outline,
+                    isSpeaker ? Icons.event : Icons.admin_panel_settings,
                   ),
-                  label: Text(isAdmin ? 'Admin' : 'Criar Palestra'),
+                  label: Text(isSpeaker ? 'Meus Eventos' : 'Admin'),
                 )
               : hasStaffAccess
               ? FloatingActionButton.extended(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const CheckinAuditPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const CheckinAuditPage(),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.assessment),

@@ -13,10 +13,17 @@
 
 CompuDECSI is a comprehensive mobile application designed for managing and participating in computer science events. Built with Flutter and Firebase, it provides a seamless experience for event organizers and attendees alike.
 
+<table>
+<tr>
+<td width="50%" valign="top">
+<img src="assets\app_screenshots\Screenshot_1756601591.png">
+<td width="50%" valign="top">
+<img src="assets\app_screenshots\Screenshot_1756601569.png">
+</table>
+
 ---
 
 ## Features
-
 ### Core Functionality
 - **Event Management**: Create, edit, and manage computer science events
 - **User Authentication**: Secure Google Sign-In integration
