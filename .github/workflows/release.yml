@@ -66,8 +66,12 @@ jobs:
         
       - name: Rename APK with version
         run: |
+          # List available APK files for debugging
+          echo "📁 Available APK files:"
+          ls -la build/app/outputs/flutter-apk/
+          
           # Rename the APK file to include version
-          cp build/app/outputs/flutter-apk/compudecsi.apk build/app/outputs/flutter-apk/compudecsi-${{ env.VERSION }}.apk
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/compudecsi-${{ env.VERSION }}.apk
           echo "📱 APK renamed to: compudecsi-${{ env.VERSION }}.apk"
         
       - name: Build Complete
