@@ -36,6 +36,12 @@ class _HomeState extends State<Home> {
       []; // Store all events for search
   List<CardInfo> categories = []; // Dynamic categories from Firestore
 
+  // Scroll controller for category animation
+  ScrollController _scrollController = ScrollController();
+  double _scrollOffset = 0.0;
+  static const double _maxScrollOffset =
+      100.0; // Distance to scroll before max shrink
+
   String formatFirstAndLastName(String? fullName) {
     if (fullName == null || fullName.trim().isEmpty) return '';
     final parts = fullName.trim().split(RegExp(r'\s+'));
@@ -294,8 +300,25 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     onTheLoad();
     super.initState();
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      setState(() {
+        _scrollOffset = _scrollController.offset;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Widget allEvents() {
@@ -604,6 +627,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Container(
           padding: EdgeInsets.only(
             top: AppSpacing.viewPortTop,
@@ -645,8 +669,10 @@ class _HomeState extends State<Home> {
                 ),
               ),
               SizedBox(height: AppSpacing.lg),
-              SizedBox(
-                height: 150,
+              AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                height: _scrollOffset > _maxScrollOffset ? 80 : 150,
                 child: ListView.builder(
                   padding: EdgeInsets.only(left: AppSpacing.viewPortSide),
                   scrollDirection: Axis.horizontal,
@@ -654,11 +680,26 @@ class _HomeState extends State<Home> {
                   itemBuilder: (context, index) {
                     final info = categories[index];
                     final isActive = selectedCategoryValue == info.value;
+
+                    // Calculate animation values based on scroll
+                    final scrollProgress = (_scrollOffset / _maxScrollOffset)
+                        .clamp(0.0, 1.0);
+                    final isShrunk = _scrollOffset > _maxScrollOffset;
+
+                    // Calculate dynamic dimensions
+                    final containerWidth = isShrunk ? 100.0 : 120.0;
+                    final iconSize = isShrunk ? 24.0 : 32.0;
+                    final fontSize = isShrunk ? 10.0 : 12.0;
+                    final padding = isShrunk ? 8.0 : 15.0;
+                    final borderRadius = isShrunk ? 24.0 : 24.0;
+
                     print(
-                      'Building carousel item: ${info.label} (${info.value}) - Active: $isActive',
+                      'Building carousel item: ${info.label} (${info.value}) - Active: $isActive, Shrunk: $isShrunk',
                     );
-                    return Container(
-                      width: 120,
+                    return AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      width: containerWidth,
                       margin: EdgeInsets.only(
                         right: index == categories.length - 1
                             ? AppSpacing.viewPortSide
@@ -666,9 +707,9 @@ class _HomeState extends State<Home> {
                       ),
                       child: Material(
                         elevation: 0,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(borderRadius),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(borderRadius),
                           onTap: () {
                             print('=== CAROUSEL ITEM TAPPED ===');
                             print('Tapped category: ${info.label}');
@@ -678,27 +719,31 @@ class _HomeState extends State<Home> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: info.backgroundColor,
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(borderRadius),
                               border: isActive
                                   ? Border.all(color: info.color, width: 2)
                                   : null,
                             ),
-                            padding: EdgeInsets.all(15),
+                            padding: EdgeInsets.all(padding),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(info.icon, color: info.color, size: 32.0),
-                                SizedBox(height: 8),
+                                Icon(
+                                  info.icon,
+                                  color: info.color,
+                                  size: iconSize,
+                                ),
+                                SizedBox(height: isShrunk ? 4 : 8),
                                 Text(
                                   info.label,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: info.color,
-                                    fontSize: 12,
+                                    fontSize: fontSize,
                                   ),
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
+                                  maxLines: isShrunk ? 1 : 2,
                                 ),
                               ],
                             ),

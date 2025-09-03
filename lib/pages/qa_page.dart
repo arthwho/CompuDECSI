@@ -20,7 +20,11 @@ class QAPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(sessionTitle ?? 'Q&A')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(sessionTitle ?? 'Q&A'),
+        backgroundColor: Colors.white,
+      ),
       body: Padding(
         padding: EdgeInsets.all(AppSpacing.viewPortSide),
         child: Column(

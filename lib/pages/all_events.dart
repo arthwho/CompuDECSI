@@ -240,82 +240,86 @@ class _AllEventsPageState extends State<AllEventsPage> {
       ),
       body: Column(
         children: [
-          // Search Widget
+          // Search Widget and Filter Button
           Padding(
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
-            child: EventSearchWidget(
-              eventsStream: eventStream!,
-              formatFirstAndLastName: formatFirstAndLastName,
-            ),
-          ),
-          SizedBox(height: AppSpacing.md),
-
-          // Filters Section
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
-            child: Column(
+            child: Row(
               children: [
-                // Filter Toggle Button
-                InkWell(
-                  onTap: _toggleFilters,
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.border),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.filter_list,
-                          size: 20,
-                          color: AppColors.grey,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Filtros',
-                          style: TextStyle(
+                Expanded(
+                  child: EventSearchWidget(
+                    eventsStream: eventStream!,
+                    formatFirstAndLastName: formatFirstAndLastName,
+                  ),
+                ),
+                SizedBox(width: AppSpacing.sm),
+                Container(
+                  height: 56, // Match the height of SearchBar
+                  child: InkWell(
+                    onTap: _toggleFilters,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.border, width: 1),
+                        borderRadius: AppBorderRadius.md,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.filter_list,
+                            size: 20,
                             color: AppColors.grey,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
                           ),
-                        ),
-                        Spacer(),
-                        if (isFilterActive)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                          SizedBox(width: 8),
+                          Text(
+                            'Filtros',
+                            style: TextStyle(
+                              color: AppColors.grey,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              'Ativo',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
+                          ),
+                          if (isFilterActive)
+                            Container(
+                              margin: EdgeInsets.only(left: 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'Ativo',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
-                          ),
-                        SizedBox(width: 8),
-                        Icon(
-                          isFiltersExpanded
-                              ? Icons.keyboard_arrow_up
-                              : Icons.keyboard_arrow_down,
-                          color: AppColors.grey,
-                          size: 20,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+          SizedBox(height: AppSpacing.sm),
 
-                // Collapsible Filters Content
-                if (isFiltersExpanded) ...[
+          // Collapsible Filters Content
+          if (isFiltersExpanded) ...[
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.viewPortSide,
+              ),
+              child: Column(
+                children: [
                   SizedBox(height: 12),
                   Column(
                     children: [
@@ -394,9 +398,7 @@ class _AllEventsPageState extends State<AllEventsPage> {
                                             ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
                                             : 'Hora',
                                         style: TextStyle(
-                                          color: selectedTime != null
-                                              ? Colors.black
-                                              : AppColors.grey,
+                                          color: AppColors.grey,
                                           fontSize: 14,
                                         ),
                                       ),
@@ -498,10 +500,10 @@ class _AllEventsPageState extends State<AllEventsPage> {
                     ],
                   ),
                 ],
-              ],
+              ),
             ),
-          ),
-          SizedBox(height: AppSpacing.md),
+          ],
+          SizedBox(height: AppSpacing.sm),
 
           // Events List
           Expanded(

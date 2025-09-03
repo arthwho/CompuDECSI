@@ -416,80 +416,27 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
       ),
       body: Column(
         children: [
-          // Search and filter section
+          // Search section
           Container(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Search field
-                TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Buscar eventos...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery = value;
-                    });
-                    _filterEvents();
-                  },
-                ),
-                const SizedBox(height: 12),
-                // Status filter
-                Row(
-                  children: [
-                    const Text('Status: '),
-                    const SizedBox(width: 8),
-                    DropdownButton<String>(
-                      value: selectedStatusFilter,
-                      items: [
-                        DropdownMenuItem(value: 'all', child: Text('Todos')),
-                        DropdownMenuItem(
-                          value: 'scheduled',
-                          child: Text('Agendado'),
-                        ),
-                        DropdownMenuItem(value: 'live', child: Text('Ao Vivo')),
-                        DropdownMenuItem(
-                          value: 'finished',
-                          child: Text('Finalizado'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedStatusFilter = value!;
-                        });
-                        _filterEvents();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Create event button
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UploadEvent()),
-                ),
-                icon: const Icon(Icons.add),
-                label: const Text('Criar evento'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar eventos...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.border),
+                  borderRadius: AppBorderRadius.md,
                 ),
               ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+                _filterEvents();
+              },
             ),
           ),
+
           // Events list
           Expanded(
             child: isLoading
@@ -706,6 +653,65 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                   ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UploadEvent()),
+        ),
+        child: const Icon(Icons.add),
+        tooltip: 'Criar evento',
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+        ),
+        child: BottomAppBar(
+          color: Colors.white,
+          elevation: 8,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Text('Status: '),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: selectedStatusFilter,
+                  items: [
+                    DropdownMenuItem(value: 'all', child: Text('Todos')),
+                    DropdownMenuItem(
+                      value: 'scheduled',
+                      child: Text('Agendado'),
+                    ),
+                    DropdownMenuItem(value: 'live', child: Text('Ao Vivo')),
+                    DropdownMenuItem(
+                      value: 'finished',
+                      child: Text('Finalizado'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedStatusFilter = value!;
+                    });
+                    _filterEvents();
+                  },
+                ),
+                const Spacer(),
+                if (userRole == 'admin') ...[
+                  Text(
+                    'Admin',
+                    style: TextStyle(
+                      color: AppColors.grey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

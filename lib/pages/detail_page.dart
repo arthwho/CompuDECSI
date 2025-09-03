@@ -354,90 +354,6 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  Widget _buildEnrollmentCodeCard() {
-    if (_enrollmentCode == null) return const SizedBox.shrink();
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.border,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          padding: const EdgeInsets.all(1.5),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.qr_code, color: AppColors.purpleDark, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Seu QR Code de inscrição',
-                      style: TextStyle(
-                        color: AppColors.purpleDark,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Apresente este QR Code para o administrador fazer o check-in',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _showQRCodeBottomSheet,
-                    icon: const Icon(Icons.qr_code_scanner),
-                    label: const Text('Mostrar QR Code'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.btnPrimary,
-                      side: BorderSide(color: AppColors.btnPrimary),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: _copyEnrollmentCode,
-                  icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: const Text('Copiar código'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.btnPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(height: AppSpacing.sm),
-      ],
-    );
-  }
-
   Future<void> _unenrollFromEvent() async {
     if (id == null || widget.eventId == null) return;
 
@@ -659,7 +575,7 @@ class _DetailsPageState extends State<DetailsPage> {
         margin: EdgeInsets.only(
           left: AppSpacing.viewPortSide,
           right: AppSpacing.viewPortSide,
-          bottom: AppSpacing.viewPortBottom,
+          bottom: 8,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -791,175 +707,44 @@ class _DetailsPageState extends State<DetailsPage> {
                       textAlign: TextAlign.left,
                     ),
                   ),
+                  SizedBox(height: AppSpacing.lg),
+                  // QR Code button (only show when enrolled and event is not finished)
+                  if (_isEnrolled && !_isLoadingEnrollment && !_isFinished)
+                    Container(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _showQRCodeBottomSheet,
+                        icon: Icon(
+                          Icons.qr_code_scanner,
+                          color: AppColors.btnPrimary,
+                        ),
+                        label: Text(
+                          'VER INGRESSO',
+                          style: TextStyle(color: AppColors.btnPrimary),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.btnPrimary,
+                          side: BorderSide(
+                            color: AppColors.btnPrimary,
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppBorderRadius.sm,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             // Action buttons
-            if (_isLoadingEnrollment)
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (_isFinished && _isEnrolled)
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: FilledButton(
-                  onPressed: () {
-                    final title = 'Avaliar — ' + widget.name;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => FeedbackPage(
-                          eventId: widget.eventId ?? widget.name,
-                          eventTitle: title,
-                        ),
-                      ),
-                    );
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.btnPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Avaliar evento',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              )
-            else if (_isFinished && !_isEnrolled)
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: Colors.grey[600],
-                        size: 24,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Avaliação indisponível',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Você precisa estar inscrito no evento para avaliá-lo',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else if (!_isEnrolled)
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: FilledButton(
-                  onPressed: _enrollInEvent,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.purpleDark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
 
-                  child: const Text(
-                    'Inscrever-se',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
+            // Removed Inscrever-se button - moved to BottomAppBar
             // Q&A and Check-in buttons (only show when enrolled and event is not finished)
             if (_isEnrolled && !_isLoadingEnrollment && !_isFinished)
               Container(
                 child: Column(
                   children: [
-                    _buildEnrollmentCodeCard(),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [AppColors.red, AppColors.purple],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: FilledButton(
-                              onPressed:
-                                  (userRole == 'admin' || _isEventStarted)
-                                  ? () {
-                                      final sessionId =
-                                          widget.eventId ??
-                                          widget.name.trim().toLowerCase();
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => QAPage(
-                                            sessionId: sessionId,
-                                            sessionTitle:
-                                                'Q&A — ' + widget.name,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  : null,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor:
-                                    (userRole == 'admin' || _isEventStarted)
-                                    ? Colors.white
-                                    : Colors.white.withOpacity(0.6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Participar do Q&A',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  if (!_isEventStarted &&
-                                      _countdownText.isNotEmpty) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Abre em $_countdownText',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.white.withOpacity(0.8),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     SizedBox(height: AppSpacing.sm),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
@@ -981,6 +766,143 @@ class _DetailsPageState extends State<DetailsPage> {
                 ),
               ),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+        ),
+        child: BottomAppBar(
+          color: Colors.white,
+          elevation: 8,
+          height: 80, // Increased height to accommodate the button
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: _isLoadingEnrollment
+                ? const Center(child: CircularProgressIndicator())
+                : _isFinished && _isEnrolled
+                ? FilledButton(
+                    onPressed: () {
+                      final title = 'Avaliar — ' + widget.name;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FeedbackPage(
+                            eventId: widget.eventId ?? widget.name,
+                            eventTitle: title,
+                          ),
+                        ),
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Avaliar evento',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  )
+                : _isFinished && !_isEnrolled
+                ? Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Este evento já foi finalizado :(',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : !_isEnrolled
+                ? FilledButton(
+                    onPressed: _enrollInEvent,
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Inscrever-se',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  )
+                : Container(
+                    width: double.infinity,
+                    height: 56, // Fixed height to prevent overflow
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.red, AppColors.purple],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: FilledButton(
+                      onPressed: (userRole == 'admin' || _isEventStarted)
+                          ? () {
+                              final sessionId =
+                                  widget.eventId ??
+                                  widget.name.trim().toLowerCase();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => QAPage(
+                                    sessionId: sessionId,
+                                    sessionTitle: 'Q&A — ' + widget.name,
+                                  ),
+                                ),
+                              );
+                            }
+                          : null,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor:
+                            (userRole == 'admin' || _isEventStarted)
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Participar do Q&A',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 14, // Slightly smaller font
+                            ),
+                          ),
+                          if (!_isEventStarted &&
+                              _countdownText.isNotEmpty) ...[
+                            const SizedBox(height: 2), // Reduced spacing
+                            Text(
+                              'Abre em $_countdownText',
+                              style: TextStyle(
+                                fontSize: 10, // Smaller font for countdown
+                                fontWeight: FontWeight.normal,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
         ),
       ),
     );

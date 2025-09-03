@@ -46,6 +46,23 @@ class _FeedbackPageState extends State<FeedbackPage> {
     }
   }
 
+  String _getRatingEmoji(int rating) {
+    switch (rating) {
+      case 1:
+        return '😢';
+      case 2:
+        return '😕';
+      case 3:
+        return '😐';
+      case 4:
+        return '🙂';
+      case 5:
+        return '😄';
+      default:
+        return '😐';
+    }
+  }
+
   Future<void> _submit() async {
     if (_submitting) return;
     setState(() => _submitting = true);
@@ -83,23 +100,68 @@ class _FeedbackPageState extends State<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.eventTitle ?? 'Avaliar evento')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Avaliar evento'),
+        backgroundColor: Colors.white,
+      ),
       body: Padding(
-        padding: EdgeInsets.all(AppSpacing.viewPortSide),
+        padding: EdgeInsets.only(
+          left: AppSpacing.viewPortSide,
+          right: AppSpacing.viewPortSide,
+          bottom: AppSpacing.viewPortSide,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Como você avalia esta palestra/evento?',
+              widget.eventTitle?.startsWith('Avaliar — ') == true
+                  ? widget.eventTitle!.substring(10)
+                  : (widget.eventTitle ?? 'Avaliar evento'),
               style: AppTextStyle.heading1,
             ),
-            const SizedBox(height: 8),
-            RatingBar(
-              value: _rating,
-              onChanged: (v) => setState(() => _rating = v),
+            SizedBox(height: AppSpacing.lg),
+            Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(
+                      scale: Tween<double>(
+                        begin: 0.8,
+                        end: 1.0,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Text(
+                  _getRatingEmoji(_rating),
+                  key: ValueKey(_rating),
+                  style: TextStyle(fontSize: 48),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            Text('Comentário (opcional)', style: AppTextStyle.heading2),
+            SizedBox(height: AppSpacing.sm),
+            Center(
+              child: Text(
+                'Quantas estrelas você daria para este evento?',
+                style: AppTextStyle.body,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              width: double.infinity,
+              child: RatingBar(
+                value: _rating,
+                onChanged: (v) => setState(() => _rating = v),
+              ),
+            ),
+            SizedBox(height: AppSpacing.lg * 2),
+            Text('Faça um comentário! (opcional)', style: AppTextStyle.body),
             const SizedBox(height: 8),
             TextField(
               controller: _commentCtrl,
@@ -110,8 +172,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
               autocorrect: true,
               decoration: InputDecoration(
                 hintText: 'Conte como foi sua experiência...',
-                filled: true,
-                fillColor: const Color(0xffececf8),
                 border: OutlineInputBorder(
                   borderRadius: AppBorderRadius.md,
                   borderSide: BorderSide(color: AppColors.border),
@@ -119,19 +179,32 @@ class _FeedbackPageState extends State<FeedbackPage> {
               ),
             ),
             const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _submitting ? null : _submit,
-                style: AppButtonStyle.btnPrimary,
-                child: Text(
-                  _existingId == null
-                      ? 'Enviar feedback'
-                      : 'Atualizar feedback',
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+        ),
+        child: BottomAppBar(
+          color: Colors.white,
+          elevation: 8,
+          height: 80,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: FilledButton(
+              onPressed: _submitting ? null : _submit,
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
+              child: Text(
+                _existingId == null ? 'Enviar feedback' : 'Atualizar feedback',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:compudecsi/services/question_service.dart';
 import 'package:flutter/material.dart';
+import 'package:compudecsi/utils/variables.dart';
 
 class QuestionInput extends StatefulWidget {
   final String sessionId;
@@ -51,9 +52,12 @@ class _QuestionInputState extends State<QuestionInput> {
             keyboardType: TextInputType.multiline,
             enableSuggestions: true,
             autocorrect: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Faça sua pergunta...',
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: AppColors.border),
+                borderRadius: AppBorderRadius.md,
+              ),
               isDense: true,
             ),
           ),

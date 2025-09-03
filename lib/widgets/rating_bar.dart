@@ -16,18 +16,32 @@ class RatingBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(5, (i) {
         final idx = i + 1;
         final filled = idx <= value;
-        return IconButton(
-          onPressed: () => onChanged(idx),
-          iconSize: size,
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          constraints: const BoxConstraints(),
-          icon: Icon(
-            filled ? Icons.star : Icons.star_border,
-            color: filled ? AppColors.purple : AppColors.border,
+        return AnimatedScale(
+          scale: filled ? 1.1 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: IconButton(
+              onPressed: () => onChanged(idx),
+              iconSize: size,
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              constraints: const BoxConstraints(),
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  filled ? Icons.star : Icons.star_border,
+                  key: ValueKey(filled),
+                  color: filled ? Colors.amber : Colors.grey[400],
+                ),
+              ),
+            ),
           ),
         );
       }),

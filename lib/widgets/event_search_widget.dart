@@ -103,7 +103,7 @@ class EventSearchWidget extends StatelessWidget {
                 shape: WidgetStatePropertyAll(
                   RoundedRectangleBorder(
                     borderRadius: AppBorderRadius.md,
-                    side: BorderSide(color: Colors.grey),
+                    side: BorderSide(color: AppColors.border, width: 1),
                   ),
                 ),
                 elevation: WidgetStatePropertyAll(0),
