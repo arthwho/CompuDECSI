@@ -8,6 +8,7 @@ import 'package:compudecsi/admin/admin_panel.dart';
 import 'package:compudecsi/admin/manage_events.dart';
 import 'package:compudecsi/admin/qr_scanner_page.dart';
 import 'package:compudecsi/admin/checkin_audit_page.dart';
+import 'package:compudecsi/utils/variables.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -23,12 +24,14 @@ class _BottomNavState extends State<BottomNav> {
     final tabs = <_TabItem>[
       _TabItem(
         label: 'Início',
-        icon: const Icon(Icons.home_filled),
+        icon: const Icon(Icons.home_outlined),
+        selectedIcon: const Icon(Icons.home),
         page: const Home(),
       ),
       _TabItem(
-        label: 'Palestras',
-        icon: const Icon(Icons.bookmark),
+        label: 'Minhas Palestras',
+        icon: const Icon(Icons.confirmation_num_outlined),
+        selectedIcon: const Icon(Icons.confirmation_num),
         page: const Booking(),
       ),
       _TabItem(
@@ -66,33 +69,61 @@ class _BottomNavState extends State<BottomNav> {
         if (currentIndex >= tabs.length) currentIndex = tabs.length - 1;
 
         return Scaffold(
-          bottomNavigationBar: NavigationBar(
-            elevation: 3,
-            labelTextStyle: const WidgetStatePropertyAll(
-              TextStyle(fontWeight: FontWeight.bold),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Color(0xffC4C4C4), width: 1),
+              ),
             ),
-            backgroundColor: Colors.white,
-            selectedIndex: currentIndex,
-            onDestinationSelected: (int index) {
-              setState(() {
-                currentIndex = index;
-              });
-            },
-            destinations: tabs.map((t) {
-              // Special handling for profile tab with user image
-              if (t.label == 'Perfil' &&
-                  t.userImage != null &&
-                  t.userImage!.isNotEmpty) {
+            child: NavigationBar(
+              elevation: 3,
+              labelTextStyle: const WidgetStatePropertyAll(
+                TextStyle(fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.white,
+              selectedIndex: currentIndex,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  currentIndex = index;
+                });
+              },
+              destinations: tabs.map((t) {
+                // Special handling for profile tab with user image
+                if (t.label == 'Perfil' &&
+                    t.userImage != null &&
+                    t.userImage!.isNotEmpty) {
+                  return NavigationDestination(
+                    icon: CircleAvatar(
+                      backgroundImage: NetworkImage(t.userImage!),
+                      radius: 12,
+                      backgroundColor: Colors.transparent,
+                    ),
+                    selectedIcon: CircleAvatar(
+                      backgroundImage: NetworkImage(t.userImage!),
+                      radius: 12,
+                      backgroundColor: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Color(
+                              0xff841e73,
+                            ), // Your primary purple color
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    label: t.label,
+                  );
+                }
                 return NavigationDestination(
-                  icon: CircleAvatar(
-                    backgroundImage: NetworkImage(t.userImage!),
-                    radius: 12,
-                  ),
+                  icon: t.icon,
+                  selectedIcon: t.selectedIcon,
                   label: t.label,
                 );
-              }
-              return NavigationDestination(icon: t.icon, label: t.label);
-            }).toList(),
+              }).toList(),
+            ),
           ),
           body: tabs[currentIndex].page,
           floatingActionButton: hasAdminAccess
@@ -129,8 +160,8 @@ class _BottomNavState extends State<BottomNav> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.assessment),
-                  label: const Text('Auditoria'),
+                  icon: const Icon(Icons.event_available),
+                  label: const Text('Check-ins'),
                 )
               : null,
         );
@@ -142,11 +173,13 @@ class _BottomNavState extends State<BottomNav> {
 class _TabItem {
   final String label;
   final Icon icon;
+  final Icon? selectedIcon;
   final Widget page;
   final String? userImage;
   _TabItem({
     required this.label,
     required this.icon,
+    this.selectedIcon,
     required this.page,
     this.userImage,
   });

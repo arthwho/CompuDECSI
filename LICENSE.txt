@@ -96,7 +96,26 @@ d) Maintain all existing copyright notices and license information
 e) If you modify the Software, clearly indicate what changes you made 
    and maintain attribution to the Original Author and Contributors
 
-4. CONTRIBUTOR RECOGNITION
+4. BRAND IDENTITY AND LOGO COPYRIGHT
+
+a) Original University Logo: The original Universidade Federal de Ouro Preto 
+   (UFOP) logo and (Departamento de Computação e Sistemas) DECSI logo remains copyright of UFOP and is used with permission.
+
+b) CompuDECSI Brand Identity: All adaptations, modifications, and custom 
+   logo variations created for the CompuDECSI project are copyright (c) 2025 
+   Arthur Silva Ferreira Coelho.
+
+c) Usage Rights: The CompuDECSI logo and brand identity may only be used 
+   in accordance with this license and with proper attribution to both 
+   Arthur Silva Ferreira Coelho, UFOP and contributors.
+
+d) Attribution Requirements: Any use of the CompuDECSI logo or brand identity 
+   must include:
+   - Attribution to Arthur Silva Ferreira Coelho for the CompuDECSI adaptations
+   - Attribution to Universidade Federal de Ouro Preto (UFOP) for original logo elements
+   - Clear indication of the relationship between the original UFOP logo and CompuDECSI adaptations
+
+5. CONTRIBUTOR RECOGNITION
 
 The Software acknowledges the contributions of all individuals and 
 organizations who have helped develop it. Contributors include but are 
@@ -108,7 +127,7 @@ not limited to:
 All contributors retain their copyright in their contributions and 
 are entitled to proper attribution as specified in this license.
 
-5. WARRANTY DISCLAIMER
+6. WARRANTY DISCLAIMER
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
 OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
@@ -118,13 +137,13 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-6. TERMINATION
+7. TERMINATION
 
 This license automatically terminates if you fail to comply with its 
 terms and conditions. Upon termination, you must cease all use, 
 distribution, and possession of the Software.
 
-7. CONTACT INFORMATION
+8. CONTACT INFORMATION
 
 For questions about this license or to request permission for commercial 
 use, please contact:
@@ -133,7 +152,7 @@ Arthur Silva Ferreira Coelho (Original Author)
 arthursifeco@gmail.com
 Universidade Federal de Ouro Preto - UFOP
 
-8. GOVERNING LAW
+9. GOVERNING LAW
 
 This license shall be governed by and construed in accordance with the 
 laws of Brasil.

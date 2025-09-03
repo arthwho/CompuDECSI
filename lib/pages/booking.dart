@@ -13,10 +13,11 @@ class Booking extends StatefulWidget {
   State<Booking> createState() => _BookingState();
 }
 
-class _BookingState extends State<Booking> {
+class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
   final user = FirebaseAuth.instance.currentUser;
   final DatabaseMethods _databaseMethods = DatabaseMethods();
   final EventService _eventService = EventService();
+  late TabController _tabController;
 
   String formatFirstAndLastName(String? fullName) {
     if (fullName == null || fullName.trim().isEmpty) return '';
@@ -31,6 +32,18 @@ class _BookingState extends State<Booking> {
   String _capitalize(String s) {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1).toLowerCase();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -50,285 +63,432 @@ class _BookingState extends State<Booking> {
       appBar: AppBar(
         title: Text('Minhas Palestras'),
         backgroundColor: Colors.white,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: AppColors.primary,
+          tabs: const [
+            Tab(text: 'Todas'),
+            Tab(text: 'Agendadas'),
+            Tab(text: 'Finalizadas'),
+          ],
+        ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _databaseMethods.getUserEnrolledEvents(user!.uid),
-        builder: (context, enrollmentSnapshot) {
-          if (enrollmentSnapshot.hasError) {
+      body: Column(
+        children: [
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildAllEventsTab(),
+                _buildScheduledEventsTab(),
+                _buildFinishedEventsTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllEventsTab() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _databaseMethods.getUserEnrolledEvents(user!.uid),
+      builder: (context, enrollmentSnapshot) {
+        if (enrollmentSnapshot.hasError) {
+          return Center(
+            child: Text(
+              'Erro ao carregar palestras: ${enrollmentSnapshot.error}',
+            ),
+          );
+        }
+
+        if (!enrollmentSnapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        final enrollments = enrollmentSnapshot.data!.docs;
+
+        if (enrollments.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.book, size: 80, color: Colors.grey[400]),
+                SizedBox(height: 16),
+                Text(
+                  'Você ainda não se inscreveu em nenhuma palestra',
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Explore as palestras disponíveis na página inicial',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return _buildEventsList(enrollments);
+      },
+    );
+  }
+
+  Widget _buildScheduledEventsTab() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _databaseMethods.getUserEnrolledEvents(user!.uid),
+      builder: (context, enrollmentSnapshot) {
+        if (enrollmentSnapshot.hasError) {
+          return Center(
+            child: Text(
+              'Erro ao carregar palestras: ${enrollmentSnapshot.error}',
+            ),
+          );
+        }
+
+        if (!enrollmentSnapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        final enrollments = enrollmentSnapshot.data!.docs;
+
+        if (enrollments.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.schedule, size: 80, color: Colors.grey[400]),
+                SizedBox(height: 16),
+                Text(
+                  'Nenhuma palestra agendada',
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return _buildEventsList(enrollments, showOnlyScheduled: true);
+      },
+    );
+  }
+
+  Widget _buildFinishedEventsTab() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _databaseMethods.getUserEnrolledEvents(user!.uid),
+      builder: (context, enrollmentSnapshot) {
+        if (enrollmentSnapshot.hasError) {
+          return Center(
+            child: Text(
+              'Erro ao carregar palestras: ${enrollmentSnapshot.error}',
+            ),
+          );
+        }
+
+        if (!enrollmentSnapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        final enrollments = enrollmentSnapshot.data!.docs;
+
+        if (enrollments.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle, size: 80, color: Colors.grey[400]),
+                SizedBox(height: 16),
+                Text(
+                  'Nenhuma palestra finalizada',
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return _buildEventsList(enrollments, showOnlyFinished: true);
+      },
+    );
+  }
+
+  Widget _buildEventsList(
+    List<QueryDocumentSnapshot> enrollments, {
+    bool showOnlyScheduled = false,
+    bool showOnlyFinished = false,
+  }) {
+    List<QueryDocumentSnapshot> filteredEnrollments = [];
+
+    for (var enrollment in enrollments) {
+      String? eventId;
+      try {
+        final enrollmentDoc = enrollment;
+        final path = enrollmentDoc.reference.path;
+
+        if (path.startsWith('events/')) {
+          final pathParts = path.split('/');
+          if (pathParts.length >= 4) {
+            eventId = pathParts[1];
+          }
+        } else if (path.startsWith('enrollments/')) {
+          final docId = enrollmentDoc.id;
+          final parts = docId.split('_');
+          if (parts.length >= 2) {
+            eventId = parts.last;
+          }
+        }
+
+        if (eventId != null && eventId.isNotEmpty) {
+          filteredEnrollments.add(enrollment);
+        }
+      } catch (e) {
+        print('Error processing enrollment: $e');
+      }
+    }
+
+    if (filteredEnrollments.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              showOnlyScheduled ? Icons.schedule : Icons.check_circle,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 16),
+            Text(
+              showOnlyScheduled
+                  ? 'Nenhuma palestra agendada'
+                  : 'Nenhuma palestra finalizada',
+              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.all(16),
+      itemCount: filteredEnrollments.length,
+      itemBuilder: (context, index) {
+        String? eventId;
+        try {
+          final enrollmentDoc = filteredEnrollments[index];
+          final path = enrollmentDoc.reference.path;
+
+          if (path.startsWith('events/')) {
+            final pathParts = path.split('/');
+            if (pathParts.length >= 4) {
+              eventId = pathParts[1];
+            }
+          } else if (path.startsWith('enrollments/')) {
+            final docId = enrollmentDoc.id;
+            final parts = docId.split('_');
+            if (parts.length >= 2) {
+              eventId = parts.last;
+            }
+          }
+
+          if (eventId == null || eventId.isEmpty) {
+            return SizedBox.shrink();
+          }
+        } catch (e) {
+          print('Error processing enrollment at index $index: $e');
+          return SizedBox.shrink();
+        }
+
+        if (eventId == null) {
+          return SizedBox.shrink();
+        }
+
+        return FutureBuilder<DocumentSnapshot?>(
+          future: _databaseMethods.getEventById(eventId),
+          builder: (context, eventSnapshot) {
+            if (!eventSnapshot.hasData || eventSnapshot.data == null) {
+              return SizedBox.shrink();
+            }
+
+            final eventData =
+                eventSnapshot.data!.data() as Map<String, dynamic>?;
+            if (eventData == null) {
+              return SizedBox.shrink();
+            }
+
+            final isFinished = _eventService.isFinished(eventData);
+
+            // Apply filters
+            if (showOnlyScheduled && isFinished) {
+              return SizedBox.shrink();
+            }
+            if (showOnlyFinished && !isFinished) {
+              return SizedBox.shrink();
+            }
+
             return Center(
-              child: Text(
-                'Erro ao carregar palestras: ${enrollmentSnapshot.error}',
-              ),
-            );
-          }
-
-          if (!enrollmentSnapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final enrollments = enrollmentSnapshot.data!.docs;
-
-          if (enrollments.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.book, size: 80, color: Colors.grey[400]),
-                  SizedBox(height: 16),
-                  Text(
-                    'Você ainda não se inscreveu em nenhuma palestra',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Explore as palestras disponíveis na página inicial',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: EdgeInsets.all(16),
-            itemCount: enrollments.length,
-            itemBuilder: (context, index) {
-              String? eventId;
-              try {
-                final enrollmentDoc = enrollments[index];
-                final enrollment = enrollmentDoc.data() as Map<String, dynamic>;
-                final path = enrollmentDoc.reference.path;
-
-                // Handle both old and new enrollment structures
-                if (path.startsWith('events/')) {
-                  // New structure: events/{eventId}/enrollments/{userId}
-                  final pathParts = path.split('/');
-                  if (pathParts.length >= 4) {
-                    eventId =
-                        pathParts[1]; // events/{eventId}/enrollments/{userId}
-                    print(
-                      'Processing NEW enrollment for eventId: $eventId, path: $path',
-                    );
-                  } else {
-                    print('Invalid NEW enrollment path: $path');
-                    return SizedBox.shrink();
-                  }
-                } else if (path.startsWith('enrollments/')) {
-                  // Old structure: enrollments/{userId}_{eventId}
-                  // Extract eventId from the document ID
-                  final docId = enrollmentDoc.id;
-                  final parts = docId.split('_');
-                  if (parts.length >= 2) {
-                    eventId = parts.last; // Take the last part as eventId
-                    print(
-                      'Processing OLD enrollment for eventId: $eventId, path: $path',
-                    );
-                  } else {
-                    print('Invalid OLD enrollment path: $path');
-                    return SizedBox.shrink();
-                  }
-                } else {
-                  print('Unknown enrollment path format: $path');
-                  return SizedBox.shrink();
-                }
-
-                if (eventId == null || eventId.isEmpty) {
-                  print('Empty eventId from path: $path');
-                  return SizedBox.shrink();
-                }
-              } catch (e) {
-                print('Error processing enrollment at index $index: $e');
-                return SizedBox.shrink();
-              }
-
-              if (eventId == null) {
-                return SizedBox.shrink();
-              }
-
-              return FutureBuilder<DocumentSnapshot?>(
-                future: _databaseMethods.getEventById(eventId),
-                builder: (context, eventSnapshot) {
-                  if (!eventSnapshot.hasData || eventSnapshot.data == null) {
-                    return SizedBox.shrink();
-                  }
-
-                  final eventData =
-                      eventSnapshot.data!.data() as Map<String, dynamic>?;
-                  if (eventData == null) {
-                    return SizedBox.shrink();
-                  }
-
-                  final isFinished = _eventService.isFinished(eventData);
-
-                  return Center(
-                    child: Card(
-                      color: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: AppColors.border),
+              child: Card(
+                color: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: AppColors.border),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsPage(
+                          image: eventData['image'] ?? '',
+                          name: eventData['name'] ?? '',
+                          local: eventData['local'] ?? '',
+                          date: eventData['date'] ?? '',
+                          time: eventData['time'] ?? '',
+                          description: eventData['description'] ?? '',
+                          speaker: eventData['speaker'] ?? '',
+                          speakerImage: eventData['speakerImage'] ?? '',
+                          eventId: eventId,
+                        ),
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DetailsPage(
-                                image: eventData['image'] ?? '',
-                                name: eventData['name'] ?? '',
-                                local: eventData['local'] ?? '',
-                                date: eventData['date'] ?? '',
-                                time: eventData['time'] ?? '',
-                                description: eventData['description'] ?? '',
-                                speaker: eventData['speaker'] ?? '',
-                                speakerImage: eventData['speakerImage'] ?? '',
-                                eventId: eventId,
+                    );
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      // Card Header
+                      ListTile(
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                eventData['name'] ?? "Sem título",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
-                          );
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            // Card Header
-                            ListTile(
-                              title: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      eventData['name'] ?? "Sem título",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isFinished
-                                          ? Colors.grey
-                                          : AppColors.accent,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      isFinished ? 'Finalizada' : 'Agendada',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 16.0,
-                                bottom: 8.0,
+                              decoration: BoxDecoration(
+                                color: isFinished
+                                    ? Colors.grey
+                                    : AppColors.accent,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    eventData['date'] ?? '',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    '•',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    eventData['time'] ?? '',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    '•',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    eventData['local'] ?? '',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.btnPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Event details
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Row(
-                                    children: [
-                                      eventData['speakerImage'] != null &&
-                                              eventData['speakerImage']
-                                                  .toString()
-                                                  .isNotEmpty
-                                          ? CircleAvatar(
-                                              backgroundImage: NetworkImage(
-                                                eventData['speakerImage'],
-                                              ),
-                                              radius: 20,
-                                            )
-                                          : Icon(
-                                              Icons.account_circle,
-                                              size: 40,
-                                            ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        formatFirstAndLastName(
-                                          eventData['speaker'],
-                                        ),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              child: Text(
+                                isFinished ? 'Finalizada' : 'Agendada',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              eventData['date'] ?? '',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              '•',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              eventData['time'] ?? '',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              '•',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              eventData['local'] ?? '',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.btnPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Event details
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: [
+                                eventData['speakerImage'] != null &&
+                                        eventData['speakerImage']
+                                            .toString()
+                                            .isNotEmpty
+                                    ? CircleAvatar(
+                                        backgroundImage: NetworkImage(
+                                          eventData['speakerImage'],
+                                        ),
+                                        radius: 20,
+                                      )
+                                    : Icon(Icons.account_circle, size: 40),
+                                SizedBox(width: 8),
+                                Text(
+                                  formatFirstAndLastName(eventData['speaker']),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

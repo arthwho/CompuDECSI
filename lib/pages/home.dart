@@ -56,38 +56,44 @@ class _HomeState extends State<Home> {
     List<QueryDocumentSnapshot<Map<String, dynamic>>> events,
   ) {
     final now = DateTime.now();
-    
+
     final upcomingEvents = events.where((doc) {
       final data = doc.data();
       final eventDate = data['date'] as String?;
       final eventTime = data['time'] as String?;
-      
+
       if (eventDate == null || eventTime == null) {
         return false; // Skip events without date or time
       }
-      
+
       try {
         // Parse event date (dd/MM/yyyy)
         final dateParts = eventDate.split('/');
         if (dateParts.length != 3) return false;
-        
+
         final eventDay = int.parse(dateParts[0]);
         final eventMonth = int.parse(dateParts[1]);
         final eventYear = int.parse(dateParts[2]);
-        
+
         // Parse event time (HH:mm)
         final timeParts = eventTime.split(':');
         if (timeParts.length != 2) return false;
-        
+
         final eventHour = int.parse(timeParts[0]);
         final eventMinute = int.parse(timeParts[1]);
-        
+
         // Create event DateTime
-        final eventDateTime = DateTime(eventYear, eventMonth, eventDay, eventHour, eventMinute);
-        
+        final eventDateTime = DateTime(
+          eventYear,
+          eventMonth,
+          eventDay,
+          eventHour,
+          eventMinute,
+        );
+
         // Return true if event is in the future (including current time)
-        return eventDateTime.isAfter(now) || eventDateTime.isAtSameMomentAs(now);
-        
+        return eventDateTime.isAfter(now) ||
+            eventDateTime.isAtSameMomentAs(now);
       } catch (e) {
         print('Error parsing event date/time: $e');
         return false; // Skip events with invalid date/time format
@@ -98,16 +104,16 @@ class _HomeState extends State<Home> {
     upcomingEvents.sort((a, b) {
       final dataA = a.data();
       final dataB = b.data();
-      
+
       final dateA = dataA['date'] as String?;
       final timeA = dataA['time'] as String?;
       final dateB = dataB['date'] as String?;
       final timeB = dataB['time'] as String?;
-      
+
       if (dateA == null || timeA == null || dateB == null || timeB == null) {
         return 0; // Keep original order if parsing fails
       }
-      
+
       try {
         // Parse event A date and time
         final datePartsA = dateA.split('/');
@@ -119,7 +125,7 @@ class _HomeState extends State<Home> {
           int.parse(timePartsA[0]), // hour
           int.parse(timePartsA[1]), // minute
         );
-        
+
         // Parse event B date and time
         final datePartsB = dateB.split('/');
         final timePartsB = timeB.split(':');
@@ -130,16 +136,15 @@ class _HomeState extends State<Home> {
           int.parse(timePartsB[0]), // hour
           int.parse(timePartsB[1]), // minute
         );
-        
+
         // Sort by DateTime (earliest first)
         return dateTimeA.compareTo(dateTimeB);
-        
       } catch (e) {
         print('Error sorting events: $e');
         return 0; // Keep original order if parsing fails
       }
     });
-    
+
     return upcomingEvents;
   }
 
@@ -248,8 +253,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-
-
   String labelFor(String value) {
     return categories
         .firstWhere((c) => c.value == value)
@@ -316,10 +319,11 @@ class _HomeState extends State<Home> {
 
         // Update the all events list for search functionality (keep all events for search)
         _allEvents = snapshot.data!.docs;
-        
+
         // Filter for upcoming events only (for display in home page)
-        List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = _filterUpcomingEvents(snapshot.data!.docs);
-        
+        List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+            _filterUpcomingEvents(snapshot.data!.docs);
+
         // Apply client-side category filter to handle legacy data where
         // 'category' may contain either the slug value or the display name.
         if (selectedCategoryValue != null) {
@@ -352,7 +356,8 @@ class _HomeState extends State<Home> {
         if (docs.isEmpty) {
           String message;
           if (selectedCategoryValue != null) {
-            message = 'Nenhuma palestra futura encontrada para "${labelFor(selectedCategoryValue!)}"';
+            message =
+                'Nenhuma palestra futura encontrada para "${labelFor(selectedCategoryValue!)}"';
           } else {
             message = 'Nenhuma palestra futura encontrada';
           }
@@ -610,7 +615,9 @@ class _HomeState extends State<Home> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.viewPortSide,
+                ),
                 child: Column(
                   children: [
                     Row(
@@ -623,10 +630,13 @@ class _HomeState extends State<Home> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        AnimatedEmoji(_getAnimatedEmoji(selectedEmoji), size: 32),
+                        AnimatedEmoji(
+                          _getAnimatedEmoji(selectedEmoji),
+                          size: 32,
+                        ),
                       ],
                     ),
-                    SizedBox(height: AppSpacing.sm),
+                    SizedBox(height: AppSpacing.lg),
                     EventSearchWidget(
                       eventsStream: eventStream!,
                       formatFirstAndLastName: formatFirstAndLastName,
@@ -634,7 +644,7 @@ class _HomeState extends State<Home> {
                   ],
                 ),
               ),
-              SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.lg),
               SizedBox(
                 height: 150,
                 child: ListView.builder(
@@ -650,8 +660,8 @@ class _HomeState extends State<Home> {
                     return Container(
                       width: 120,
                       margin: EdgeInsets.only(
-                        right: index == categories.length - 1 
-                            ? AppSpacing.viewPortSide 
+                        right: index == categories.length - 1
+                            ? AppSpacing.viewPortSide
                             : AppSpacing.sm,
                       ),
                       child: Material(
@@ -700,34 +710,40 @@ class _HomeState extends State<Home> {
                 ),
               ),
               SizedBox(height: AppSpacing.md),
-              Padding(padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Próximas palestras',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.viewPortSide,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Próximas palestras',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AllEventsPage(),
-                        ),
-                      );
-                    },
-                    child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
-                  ),
-                ],
-              ),),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AllEventsPage(),
+                          ),
+                        );
+                      },
+                      child: Text('VER TUDO', style: TextStyle(fontSize: 16)),
+                    ),
+                  ],
+                ),
+              ),
               SizedBox(height: AppSpacing.md),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.viewPortSide),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.viewPortSide,
+                ),
                 child: allEvents(),
               ),
             ],

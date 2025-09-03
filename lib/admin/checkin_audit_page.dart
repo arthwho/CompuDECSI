@@ -21,7 +21,7 @@ class _CheckinAuditPageState extends State<CheckinAuditPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -73,7 +73,6 @@ class _CheckinAuditPageState extends State<CheckinAuditPage>
           tabs: const [
             Tab(text: 'Todos'),
             Tab(text: 'Por Staff'),
-            Tab(text: 'Detalhado'),
           ],
         ),
       ),
@@ -116,11 +115,7 @@ class _CheckinAuditPageState extends State<CheckinAuditPage>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _buildAllCheckinsTab(),
-                _buildStaffCheckinsTab(),
-                _buildEventCheckinsTab(),
-              ],
+              children: [_buildAllCheckinsTab(), _buildStaffCheckinsTab()],
             ),
           ),
         ],
@@ -135,90 +130,6 @@ class _CheckinAuditPageState extends State<CheckinAuditPage>
         icon: const Icon(Icons.qr_code_scanner),
         label: const Text('Scanner'),
       ),
-    );
-  }
-
-  Widget _buildEventCheckinsTab() {
-    return _buildAllEventsCheckinsList();
-  }
-
-  Widget _buildAllEventsCheckinsList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: DatabaseMethods().getAllEventCheckIns(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('Nenhum check-in encontrado'));
-        }
-
-        final allCheckins = snapshot.data!.docs;
-        final filteredCheckins = _filterCheckins(allCheckins);
-
-        if (filteredCheckins.isEmpty && searchQuery.isNotEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  'Nenhum resultado encontrado para "$searchQuery"',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: filteredCheckins.length,
-          itemBuilder: (context, index) {
-            final checkin =
-                filteredCheckins[index].data() as Map<String, dynamic>;
-            final checkedInBy = checkin['checkedInBy'] as Map<String, dynamic>?;
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.primary,
-                  child: Text(
-                    (checkin['name'] as String).substring(0, 1).toUpperCase(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-                title: Text(checkin['name'] ?? 'N/A'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Evento: ${checkin['lectureName'] ?? 'N/A'}'),
-                    Text(
-                      'Data: ${checkin['date'] ?? 'N/A'} - ${checkin['time'] ?? 'N/A'}',
-                    ),
-                    if (checkedInBy != null)
-                      Text(
-                        'Check-in por: ${checkedInBy['staffName'] ?? 'N/A'}',
-                      ),
-                  ],
-                ),
-                trailing:
-                    checkedInBy != null && checkedInBy['checkedInAt'] != null
-                    ? Text(
-                        DateFormat('HH:mm').format(
-                          (checkedInBy['checkedInAt'] as Timestamp).toDate(),
-                        ),
-                        style: const TextStyle(fontSize: 12),
-                      )
-                    : null,
-              ),
-            );
-          },
-        );
-      },
     );
   }
 

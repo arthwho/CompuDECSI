@@ -11,7 +11,7 @@ class EventSearchWidget extends StatelessWidget {
   const EventSearchWidget({
     super.key,
     required this.eventsStream,
-    this.hintText = 'Pesquisar palestras',
+    this.hintText = 'Buscar palestras',
     required this.formatFirstAndLastName,
   });
 
@@ -50,7 +50,11 @@ class EventSearchWidget extends StatelessWidget {
     return results;
   }
 
-  void _navigateToEventDetails(BuildContext context, Map<String, dynamic> data, String docId) {
+  void _navigateToEventDetails(
+    BuildContext context,
+    Map<String, dynamic> data,
+    String docId,
+  ) {
     try {
       print('Attempting navigation...');
       Navigator.push(
@@ -117,14 +121,15 @@ class EventSearchWidget extends StatelessWidget {
                 leading: const Icon(Icons.search),
               );
             },
-            suggestionsBuilder: (BuildContext context, SearchController controller) {
-              return [
-                ListTile(
-                  title: Text('Carregando eventos...'),
-                  enabled: false,
-                ),
-              ];
-            },
+            suggestionsBuilder:
+                (BuildContext context, SearchController controller) {
+                  return [
+                    ListTile(
+                      title: Text('Carregando eventos...'),
+                      enabled: false,
+                    ),
+                  ];
+                },
           );
         }
 
@@ -154,14 +159,15 @@ class EventSearchWidget extends StatelessWidget {
                 leading: const Icon(Icons.search),
               );
             },
-            suggestionsBuilder: (BuildContext context, SearchController controller) {
-              return [
-                ListTile(
-                  title: Text('Nenhum evento disponível'),
-                  enabled: false,
-                ),
-              ];
-            },
+            suggestionsBuilder:
+                (BuildContext context, SearchController controller) {
+                  return [
+                    ListTile(
+                      title: Text('Nenhum evento disponível'),
+                      enabled: false,
+                    ),
+                  ];
+                },
           );
         }
 
