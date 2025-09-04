@@ -8,7 +8,6 @@ import 'package:compudecsi/services/shared_pref.dart';
 import 'package:animated_emoji/animated_emoji.dart';
 import 'package:compudecsi/services/category_service.dart';
 import 'package:compudecsi/widgets/event_search_widget.dart';
-import 'package:compudecsi/pages/all_events.dart';
 
 class CardInfo {
   const CardInfo(this.label, this.value, this.icon);
