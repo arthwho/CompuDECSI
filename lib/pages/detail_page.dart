@@ -708,6 +708,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     ),
                   ),
                   SizedBox(height: AppSpacing.lg),
+
                   // QR Code button (only show when enrolled and event is not finished)
                   if (_isEnrolled && !_isLoadingEnrollment && !_isFinished)
                     Container(
