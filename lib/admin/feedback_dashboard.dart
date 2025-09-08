@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/services/feedback_service.dart';
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:compudecsi/utils/role_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,13 +14,14 @@ class FeedbackDashboardPage extends StatelessWidget {
     return RoleGuard(
       requiredRoles: const {'admin', 'speaker'},
       builder: (context) => Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Feedback dos eventos'),
-          backgroundColor: Colors.white,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: context.customBorder, height: 1.0),
+          ),
         ),
         body: Container(
-          color: Colors.white,
           child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
             stream: FirebaseFirestore.instance
                 .collection('users')
@@ -115,7 +117,13 @@ class _EventFeedbackList extends StatelessWidget {
   Widget build(BuildContext context) {
     final service = FeedbackService();
     return Scaffold(
-      appBar: AppBar(title: Text('Feedback — $title')),
+      appBar: AppBar(
+        title: Text('Feedback — $title'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
+        ),
+      ),
       body: StreamBuilder(
         stream: service.watchEventFeedback(eventId),
         builder: (context, snapshot) {

@@ -38,6 +38,7 @@ Este repositório contém a documentação completa do projeto CompuDECSI em por
 - **[Android Signing Guide](ingles/guias/ANDROID_SIGNING_GUIDE.md)** - Production signing configuration
 - **[ProGuard Configuration Guide](ingles/guias/PROGUARD_CONFIGURATION_GUIDE.md)** - Code obfuscation configuration
 - **[Notifications Configuration Guide](ingles/guias/NOTIFICATIONS_CONFIGURATION_GUIDE.md)** - Push notifications configuration
+- **[Theme Configuration Guide](ingles/guias/theme_implementation_guide.md.md)** - Applying theme configurations
 
 </td>
 </tr>
@@ -45,7 +46,7 @@ Este repositório contém a documentação completa do projeto CompuDECSI em por
 
 ---
 
-## 🎨 Protótipo / Prototype
+## Protótipo / Prototype
 
 <table>
 <tr>
@@ -59,7 +60,7 @@ Este repositório contém a documentação completa do projeto CompuDECSI em por
 
 ---
 
-## 📋 Estrutura da Documentação / Documentation structure
+## Estrutura da Documentação / Documentation structure
 
 
 ```
@@ -84,14 +85,14 @@ docs/
 <tr>
 <td width="50%" valign="top">
 
-- **Última atualização**: 27 de Agosto de 2025
-- **Versão**: 1.0.1-beta.1
+- **Última atualização**: 8 de Setembro de 2025
+- **Versão**: 1.3.1
 
 </td>
 <td width="50%" valign="top">
 
-- **Last update**: August 27, 2025
-- **Version**: 1.0.1-beta.1
+- **Last update**: September 8, 2025
+- **Version**: 1.3.1
 
 </td>
 </tr>

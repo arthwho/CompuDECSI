@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:compudecsi/pages/home.dart';
-import 'package:compudecsi/utils/variables.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +38,7 @@ class _HomeState extends State<Home> {
     if (parts.length == 1) {
       return _capitalize(parts[0]);
     } else {
-      return _capitalize(parts.first) + ' ' + _capitalize(parts.last);
+      return '${_capitalize(parts.first)} ${_capitalize(parts.last)}';
     }
   }
 

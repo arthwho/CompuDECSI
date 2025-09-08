@@ -15,10 +15,14 @@ CompuDECSI is a comprehensive mobile application designed for managing and parti
 
 <table>
 <tr>
-<td width="50%" valign="top">
+<td width="25%" valign="top">
 <img src="assets\app_screenshots\Screenshot_1756601591.png">
-<td width="50%" valign="top">
+<td width="25%" valign="top">
 <img src="assets\app_screenshots\Screenshot_1756601569.png">
+<td width="25%" valign="top">
+<img src="assets\app_screenshots\Screenshot_1757019219.png">
+<td width="25%" valign="top">
+<img src="assets\app_screenshots\Screenshot_1757019337.png">
 </table>
 
 ---

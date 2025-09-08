@@ -3,20 +3,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/shared_pref.dart';
 import 'package:animated_emoji/animated_emoji.dart';
 import 'package:compudecsi/services/category_service.dart';
 import 'package:compudecsi/widgets/event_search_widget.dart';
+import 'package:compudecsi/utils/app_theme.dart';
 
 class CardInfo {
-  const CardInfo(this.label, this.value, this.icon);
+  CardInfo(this.label, this.value, this.icon);
   final String label; // Texto para UI
   final String value; // Valor canônico salvo no Firestore (category)
   final IconData icon;
-
-  final Color color = const Color(0xff841e73);
-  final Color backgroundColor = const Color(0xffF9E6F3);
 }
 
 class Home extends StatefulWidget {
@@ -51,7 +50,7 @@ class _HomeState extends State<Home> {
     if (parts.length == 1) {
       return _capitalize(parts[0]);
     } else {
-      return _capitalize(parts.first) + ' ' + _capitalize(parts.last);
+      return '${_capitalize(parts.first)} ${_capitalize(parts.last)}';
     }
   }
 
@@ -605,18 +604,14 @@ class _HomeState extends State<Home> {
       if (mounted) {
         setState(() {
           categories = [
-            const CardInfo('Data Science', 'data_science', Icons.analytics),
-            const CardInfo('Criptografia', 'cryptography', Icons.security),
-            const CardInfo('Robótica', 'robotics', Icons.smart_toy),
-            const CardInfo('Inteligência Artificial', 'ai', Icons.psychology),
-            const CardInfo('Software', 'software', Icons.code),
-            const CardInfo('Computação', 'computing', Icons.computer),
-            const CardInfo('Eletrônica', 'electronics', Icons.electric_bolt),
-            const CardInfo(
-              'Telecomunicações',
-              'telecom',
-              Icons.signal_cellular_alt,
-            ),
+            CardInfo('Data Science', 'data_science', Icons.analytics),
+            CardInfo('Criptografia', 'cryptography', Icons.security),
+            CardInfo('Robótica', 'robotics', Icons.smart_toy),
+            CardInfo('Inteligência Artificial', 'ai', Icons.psychology),
+            CardInfo('Software', 'software', Icons.code),
+            CardInfo('Computação', 'computing', Icons.computer),
+            CardInfo('Eletrônica', 'electronics', Icons.electric_bolt),
+            CardInfo('Telecomunicações', 'telecom', Icons.signal_cellular_alt),
           ];
         });
       }
@@ -787,11 +782,7 @@ class _HomeState extends State<Home> {
                 children: [
                   Icon(Icons.event_busy, size: 48, color: AppColors.grey),
                   SizedBox(height: 8),
-                  Text(
-                    message,
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(message, textAlign: TextAlign.center),
                 ],
               ),
             ),
@@ -807,11 +798,11 @@ class _HomeState extends State<Home> {
             final ds = docs[index];
             return Center(
               child: Card(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: AppColors.border),
+                  side: BorderSide(color: context.customBorder),
                 ),
                 clipBehavior:
                     Clip.antiAlias, // Ensures the image respects card corners
@@ -871,6 +862,7 @@ class _HomeState extends State<Home> {
                                 ),
                               ),
                             ),
+                            SizedBox(width: AppSpacing.sm),
                             Builder(
                               builder: (context) {
                                 // Check if event is finished
@@ -910,15 +902,21 @@ class _HomeState extends State<Home> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.grey,
-                                      borderRadius: BorderRadius.circular(12),
+                                      color: context.customGrey.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: context.customGrey,
+                                        width: 1.5,
+                                      ),
                                     ),
                                     child: Text(
                                       'Finalizado',
                                       style: TextStyle(
-                                        color: Colors.white,
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
+                                        color: context.customGrey,
                                       ),
                                     ),
                                   );
@@ -944,17 +942,22 @@ class _HomeState extends State<Home> {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: AppColors.accent,
+                                            color: context.customBlue
+                                                .withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
-                                              12,
+                                              8,
+                                            ),
+                                            border: Border.all(
+                                              color: context.customBlue,
+                                              width: 1.5,
                                             ),
                                           ),
                                           child: Text(
                                             'Inscrito',
                                             style: TextStyle(
-                                              color: Colors.white,
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
+                                              color: context.customBlue,
                                             ),
                                           ),
                                         );
@@ -1029,8 +1032,15 @@ class _HomeState extends State<Home> {
                                   displayDate,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: AppColors.btnPrimary,
                                     fontWeight: FontWeight.bold,
+                                    color:
+                                        Theme.of(context)
+                                            .extension<theme.CustomColors>()
+                                            ?.highlightedText ??
+                                        theme
+                                            .CustomColors
+                                            .light
+                                            .highlightedText,
                                   ),
                                 );
                               },
@@ -1040,7 +1050,11 @@ class _HomeState extends State<Home> {
                               '•',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                               ),
                             ),
                             SizedBox(width: 8),
@@ -1048,7 +1062,11 @@ class _HomeState extends State<Home> {
                               ds["time"],
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1057,7 +1075,11 @@ class _HomeState extends State<Home> {
                               '•',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                               ),
                             ),
                             SizedBox(width: 8),
@@ -1065,7 +1087,11 @@ class _HomeState extends State<Home> {
                               ds["local"],
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1182,13 +1208,13 @@ class _HomeState extends State<Home> {
               child: Text(
                 'Acontecendo esta semana',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.sm),
             SizedBox(
               height: 175,
               child: ListView.builder(
@@ -1201,13 +1227,13 @@ class _HomeState extends State<Home> {
                   final ds = docs[index];
                   return Container(
                     width: (MediaQuery.of(context).size.width - 32),
-                    margin: EdgeInsets.only(right: 4),
+                    margin: EdgeInsets.only(right: 0),
                     child: Card(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: AppColors.border),
+                        side: BorderSide(color: context.customBorder),
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
@@ -1274,6 +1300,7 @@ class _HomeState extends State<Home> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  SizedBox(width: AppSpacing.sm),
                                   if (FirebaseAuth.instance.currentUser != null)
                                     FutureBuilder<bool>(
                                       future: DatabaseMethods()
@@ -1293,16 +1320,22 @@ class _HomeState extends State<Home> {
                                               vertical: 4,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: AppColors.accent,
+                                              color: context.customBlue
+                                                  .withValues(alpha: 0.1),
                                               borderRadius:
-                                                  BorderRadius.circular(12),
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: context
+                                                    .customBlue, // You can change this to another color if needed
+                                                width: 1.5,
+                                              ),
                                             ),
                                             child: Text(
                                               'Inscrito',
                                               style: TextStyle(
-                                                color: Colors.white,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.bold,
+                                                color: context.customBlue,
                                               ),
                                             ),
                                           );
@@ -1381,7 +1414,16 @@ class _HomeState extends State<Home> {
                                         displayDate,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: AppColors.btnPrimary,
+                                          color:
+                                              Theme.of(context)
+                                                  .extension<
+                                                    theme.CustomColors
+                                                  >()
+                                                  ?.highlightedText ??
+                                              theme
+                                                  .CustomColors
+                                                  .light
+                                                  .highlightedText,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       );
@@ -1392,7 +1434,14 @@ class _HomeState extends State<Home> {
                                     '•',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: AppColors.btnPrimary,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<theme.CustomColors>()
+                                              ?.highlightedText ??
+                                          theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                     ),
                                   ),
                                   SizedBox(width: 8),
@@ -1400,7 +1449,14 @@ class _HomeState extends State<Home> {
                                     ds["time"],
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: AppColors.btnPrimary,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<theme.CustomColors>()
+                                              ?.highlightedText ??
+                                          theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -1409,7 +1465,14 @@ class _HomeState extends State<Home> {
                                     '•',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: AppColors.btnPrimary,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<theme.CustomColors>()
+                                              ?.highlightedText ??
+                                          theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                     ),
                                   ),
                                   SizedBox(width: 8),
@@ -1418,7 +1481,14 @@ class _HomeState extends State<Home> {
                                       ds["local"],
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: AppColors.btnPrimary,
+                                        color:
+                                            Theme.of(context)
+                                                .extension<theme.CustomColors>()
+                                                ?.highlightedText ??
+                                            theme
+                                                .CustomColors
+                                                .light
+                                                .highlightedText,
                                         fontWeight: FontWeight.bold,
                                       ),
                                       overflow: TextOverflow.ellipsis,
@@ -1484,299 +1554,305 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Container(
-          padding: EdgeInsets.only(
-            top: AppSpacing.viewPortTop,
-            bottom: AppSpacing.viewPortBottom,
-          ),
-          width: MediaQuery.of(context).size.width,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Container(
+            padding: EdgeInsets.only(top: 8, bottom: AppSpacing.viewPortSide),
+            width: MediaQuery.of(context).size.width,
 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.viewPortSide,
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Olá, ${formatFirstAndLastName(userName)}! ',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        AnimatedEmoji(
-                          _getAnimatedEmoji(selectedEmoji),
-                          size: 32,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: AppSpacing.lg),
-                    EventSearchWidget(
-                      eventsStream: eventStream!,
-                      formatFirstAndLastName: formatFirstAndLastName,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: AppSpacing.lg),
-              AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                height: _scrollOffset > _maxScrollOffset ? 80 : 150,
-                child: ListView.builder(
-                  padding: EdgeInsets.only(left: AppSpacing.viewPortSide),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final info = categories[index];
-                    final isActive = selectedCategoryValue == info.value;
-
-                    // Calculate animation values based on scroll
-                    final scrollProgress = (_scrollOffset / _maxScrollOffset)
-                        .clamp(0.0, 1.0);
-                    final isShrunk = _scrollOffset > _maxScrollOffset;
-
-                    // Calculate dynamic dimensions
-                    final containerWidth = isShrunk ? 100.0 : 120.0;
-                    final iconSize = isShrunk ? 24.0 : 32.0;
-                    final fontSize = isShrunk ? 10.0 : 12.0;
-                    final padding = isShrunk ? 8.0 : 15.0;
-                    final borderRadius = isShrunk ? 24.0 : 24.0;
-
-                    print(
-                      'Building carousel item: ${info.label} (${info.value}) - Active: $isActive, Shrunk: $isShrunk',
-                    );
-                    return AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      width: containerWidth,
-                      margin: EdgeInsets.only(
-                        right: index == categories.length - 1
-                            ? AppSpacing.viewPortSide
-                            : AppSpacing.sm,
-                      ),
-                      child: Material(
-                        elevation: 0,
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(borderRadius),
-                          onTap: () {
-                            print('=== CAROUSEL ITEM TAPPED ===');
-                            print('Tapped category: ${info.label}');
-                            print('Category value: ${info.value}');
-                            _applyFilter(info.value);
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: info.backgroundColor,
-                              borderRadius: BorderRadius.circular(borderRadius),
-                              border: isActive
-                                  ? Border.all(color: info.color, width: 2)
-                                  : null,
-                            ),
-                            padding: EdgeInsets.all(padding),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  info.icon,
-                                  color: info.color,
-                                  size: iconSize,
-                                ),
-                                SizedBox(height: isShrunk ? 4 : 8),
-                                Text(
-                                  info.label,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: info.color,
-                                    fontSize: fontSize,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: isShrunk ? 1 : 2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              upcomingEventsHorizontal(),
-              SizedBox(height: AppSpacing.md),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.viewPortSide,
-                ),
-                child: Container(
-                  height: 50, // Fixed height for consistent spacing
-                  child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.viewPortSide,
+                  ),
+                  child: Column(
                     children: [
-                      Text(
-                        'Explorar palestras',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            'Olá, ${formatFirstAndLastName(userName)}! ',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          AnimatedEmoji(
+                            _getAnimatedEmoji(selectedEmoji),
+                            size: 32,
+                          ),
+                        ],
                       ),
-                      Spacer(),
-                      if (selectedDateFilter != 'Todos' ||
-                          selectedCustomDate != null ||
-                          selectedTimeSlot != null)
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedDateFilter = 'Todos';
-                              selectedCustomDate = null;
-                              selectedTimeSlot = null;
-                            });
-                            print('=== FILTERS CLEARED ===');
-                          },
-                          child: Text('Limpar', style: TextStyle(fontSize: 16)),
-                        )
-                      else
-                        SizedBox(width: 60), // Reserve same space as button
+                      SizedBox(height: AppSpacing.lg),
+                      EventSearchWidget(
+                        eventsStream: eventStream!,
+                        formatFirstAndLastName: formatFirstAndLastName,
+                      ),
                     ],
                   ),
                 ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.viewPortSide,
-                ),
-                child: Row(
-                  children: [
-                    FilterChip(
-                      label: Text('Todos'),
-                      selected: selectedDateFilter == 'Todos',
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      onSelected: (value) {
-                        setState(() {
-                          selectedDateFilter = 'Todos';
-                        });
-                        print('=== FILTER CHIP TAPPED ===');
-                        print('Value: Todos');
-                      },
-                    ),
-                    SizedBox(width: 8),
-                    FilterChip(
-                      label: Text('Hoje'),
-                      selected: selectedDateFilter == 'Hoje',
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      onSelected: (value) {
-                        setState(() {
-                          selectedDateFilter = 'Hoje';
-                          selectedCustomDate = null; // Clear custom date
-                        });
-                        print('=== FILTER CHIP TAPPED ===');
-                        print('Value: Hoje');
-                      },
-                    ),
-                    SizedBox(width: 8),
-                    FilterChip(
-                      label: Text('Amanhã'),
-                      selected: selectedDateFilter == 'Amanhã',
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      onSelected: (value) {
-                        setState(() {
-                          selectedDateFilter = 'Amanhã';
-                          selectedCustomDate = null; // Clear custom date
-                        });
-                        print('=== FILTER CHIP TAPPED ===');
-                        print('Value: Amanhã');
-                      },
-                    ),
-                    SizedBox(width: 8),
-                    FilterChip(
-                      label: Text(
-                        selectedCustomDate != null
-                            ? '${selectedCustomDate!.day.toString().padLeft(2, '0')}/${selectedCustomDate!.month.toString().padLeft(2, '0')}'
-                            : 'Data',
-                      ),
-                      selected: selectedCustomDate != null,
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      onSelected: (value) async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(Duration(days: 365)),
-                        );
-                        if (picked != null) {
-                          setState(() {
-                            selectedCustomDate = picked;
-                            selectedDateFilter =
-                                'Todos'; // Clear preset date filters
-                          });
-                        }
-                        print('=== DATE FILTER CHIP TAPPED ===');
-                        print('Selected Date: $selectedCustomDate');
-                      },
-                    ),
-                    SizedBox(width: 8),
-                    FilterChip(
-                      label: Text(selectedTimeSlot ?? 'Hora'),
-                      selected: selectedTimeSlot != null,
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      onSelected: (value) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Selecionar Horário'),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
+                SizedBox(height: AppSpacing.lg),
+                AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  height: _scrollOffset > _maxScrollOffset ? 80 : 150,
+                  child: ListView.builder(
+                    padding: EdgeInsets.only(left: AppSpacing.viewPortSide),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final info = categories[index];
+                      final isActive = selectedCategoryValue == info.value;
+
+                      // Calculate animation values based on scroll
+                      final scrollProgress = (_scrollOffset / _maxScrollOffset)
+                          .clamp(0.0, 1.0);
+                      final isShrunk = _scrollOffset > _maxScrollOffset;
+
+                      // Calculate dynamic dimensions
+                      final containerWidth = isShrunk ? 100.0 : 120.0;
+                      final iconSize = isShrunk ? 24.0 : 32.0;
+                      final fontSize = isShrunk ? 10.0 : 12.0;
+                      final padding = isShrunk ? 8.0 : 15.0;
+                      final borderRadius = isShrunk ? 24.0 : 24.0;
+
+                      print(
+                        'Building carousel item: ${info.label} (${info.value}) - Active: $isActive, Shrunk: $isShrunk',
+                      );
+                      return AnimatedContainer(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        width: containerWidth,
+                        margin: EdgeInsets.only(
+                          right: index == categories.length - 1
+                              ? AppSpacing.viewPortSide
+                              : AppSpacing.sm,
+                        ),
+                        child: Material(
+                          elevation: 0,
+                          borderRadius: BorderRadius.circular(borderRadius),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(borderRadius),
+                            onTap: () {
+                              print('=== CAROUSEL ITEM TAPPED ===');
+                              print('Tapped category: ${info.label}');
+                              print('Category value: ${info.value}');
+                              _applyFilter(info.value);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: context.appColors.categoryBG,
+                                borderRadius: BorderRadius.circular(
+                                  borderRadius,
+                                ),
+                                border: isActive
+                                    ? Border.all(
+                                        color: context.appColors.categoryText,
+                                        width: 2,
+                                      )
+                                    : null,
+                              ),
+                              padding: EdgeInsets.all(padding),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  _buildTimeSlotOption("08h - 12h"),
-                                  _buildTimeSlotOption("13h - 15h"),
-                                  _buildTimeSlotOption("15h - 18h"),
-                                  _buildTimeSlotOption("19h - 21h"),
+                                  Icon(
+                                    info.icon,
+                                    color: context.appColors.categoryText,
+                                    size: iconSize,
+                                  ),
+                                  SizedBox(height: isShrunk ? 4 : 8),
+                                  Text(
+                                    info.label,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: context.appColors.categoryText,
+                                      fontSize: fontSize,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: isShrunk ? 1 : 2,
+                                  ),
                                 ],
                               ),
-                            );
-                          },
-                        );
-                      },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                upcomingEventsHorizontal(),
+                SizedBox(height: AppSpacing.md),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.viewPortSide,
+                  ),
+                  child: SizedBox(
+                    height: 50, // Fixed height for consistent spacing
+                    child: Row(
+                      children: [
+                        Text(
+                          'Explorar eventos',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        if (selectedDateFilter != 'Todos' ||
+                            selectedCustomDate != null ||
+                            selectedTimeSlot != null)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedDateFilter = 'Todos';
+                                selectedCustomDate = null;
+                                selectedTimeSlot = null;
+                              });
+                              print('=== FILTERS CLEARED ===');
+                            },
+                            child: Text(
+                              'Limpar',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          )
+                        else
+                          SizedBox(width: 60), // Reserve same space as button
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              SizedBox(height: AppSpacing.md),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.viewPortSide,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.viewPortSide,
+                  ),
+                  child: Row(
+                    children: [
+                      FilterChip(
+                        label: Text('Todos'),
+                        selected: selectedDateFilter == 'Todos',
+                        backgroundColor: Theme.of(context).cardColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        onSelected: (value) {
+                          setState(() {
+                            selectedDateFilter = 'Todos';
+                          });
+                          print('=== FILTER CHIP TAPPED ===');
+                          print('Value: Todos');
+                        },
+                      ),
+                      SizedBox(width: 8),
+                      FilterChip(
+                        label: Text('Hoje'),
+                        selected: selectedDateFilter == 'Hoje',
+                        backgroundColor: Theme.of(context).cardColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        onSelected: (value) {
+                          setState(() {
+                            selectedDateFilter = 'Hoje';
+                            selectedCustomDate = null; // Clear custom date
+                          });
+                          print('=== FILTER CHIP TAPPED ===');
+                          print('Value: Hoje');
+                        },
+                      ),
+                      SizedBox(width: 8),
+                      FilterChip(
+                        label: Text('Amanhã'),
+                        selected: selectedDateFilter == 'Amanhã',
+                        backgroundColor: Theme.of(context).cardColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        onSelected: (value) {
+                          setState(() {
+                            selectedDateFilter = 'Amanhã';
+                            selectedCustomDate = null; // Clear custom date
+                          });
+                          print('=== FILTER CHIP TAPPED ===');
+                          print('Value: Amanhã');
+                        },
+                      ),
+                      SizedBox(width: 8),
+                      FilterChip(
+                        label: Text(
+                          selectedCustomDate != null
+                              ? '${selectedCustomDate!.day.toString().padLeft(2, '0')}/${selectedCustomDate!.month.toString().padLeft(2, '0')}'
+                              : 'Data',
+                        ),
+                        selected: selectedCustomDate != null,
+                        backgroundColor: Theme.of(context).cardColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        onSelected: (value) async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(Duration(days: 365)),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              selectedCustomDate = picked;
+                              selectedDateFilter =
+                                  'Todos'; // Clear preset date filters
+                            });
+                          }
+                          print('=== DATE FILTER CHIP TAPPED ===');
+                          print('Selected Date: $selectedCustomDate');
+                        },
+                      ),
+                      SizedBox(width: 8),
+                      FilterChip(
+                        label: Text(selectedTimeSlot ?? 'Hora'),
+                        selected: selectedTimeSlot != null,
+                        backgroundColor: Theme.of(context).cardColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        onSelected: (value) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Selecionar Horário'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildTimeSlotOption("08h - 12h"),
+                                    _buildTimeSlotOption("13h - 15h"),
+                                    _buildTimeSlotOption("15h - 18h"),
+                                    _buildTimeSlotOption("19h - 21h"),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                child: allEvents(),
-              ),
-            ],
+                SizedBox(height: AppSpacing.sm),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.viewPortSide,
+                  ),
+                  child: allEvents(),
+                ),
+              ],
+            ),
           ),
         ),
       ),

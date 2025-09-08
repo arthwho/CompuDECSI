@@ -1,17 +1,17 @@
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:compudecsi/widgets/qr_code_widget.dart';
-import 'package:compudecsi/utils/variables.dart';
 
 class QRCodeBottomSheet extends StatelessWidget {
   final String enrollmentCode;
   final String eventName;
 
   const QRCodeBottomSheet({
-    Key? key,
+    super.key,
     required this.enrollmentCode,
     required this.eventName,
-  }) : super(key: key);
+  });
 
   Future<void> _copyCode(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: enrollmentCode));
@@ -28,9 +28,9 @@ class QRCodeBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
@@ -93,16 +93,14 @@ class QRCodeBottomSheet extends StatelessWidget {
                 // Copy button
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  child: FilledButton.icon(
                     onPressed: () => _copyCode(context),
                     icon: const Icon(Icons.copy),
                     label: const Text('Copiar Código'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.purpleDark,
-                      foregroundColor: Colors.white,
+                    style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                   ),
@@ -114,26 +112,18 @@ class QRCodeBottomSheet extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.purple.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.purple.withOpacity(0.3),
-                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.customBorder),
                   ),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: AppColors.purpleDark,
-                            size: 16,
-                          ),
+                          Icon(Icons.info_outline, size: 16),
                           const SizedBox(width: 8),
                           Text(
                             'Instruções:',
                             style: TextStyle(
-                              color: AppColors.purpleDark,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -142,14 +132,10 @@ class QRCodeBottomSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '• Apresente este QR Code para o administrador\n'
-                        '• O administrador irá escaneá-lo para confirmar sua presença\n'
+                        '• Apresente este QR Code para check-in\n'
+                        '• Este código será escaneado para confirmar sua presença\n'
                         '• Mantenha este código seguro',
-                        style: TextStyle(
-                          color: AppColors.purpleDark,
-                          fontSize: 11,
-                          height: 1.4,
-                        ),
+                        style: TextStyle(fontSize: 11, height: 1.4),
                       ),
                     ],
                   ),

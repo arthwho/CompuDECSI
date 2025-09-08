@@ -1,3 +1,4 @@
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:compudecsi/services/database.dart';
@@ -52,15 +53,12 @@ class _QRScannerPageState extends State<QRScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text(
-          'Escanear QR Code',
-          style: TextStyle(color: Colors.white),
+        title: const Text('Escanear QR Code'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
         ),
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
       ),
       body: Stack(
         children: [
@@ -137,8 +135,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
         onPressed: () async {
           await controller.toggleTorch();
         },
-        backgroundColor: AppColors.purpleDark,
-        child: const Icon(Icons.flash_on, color: Colors.white),
+        child: const Icon(Icons.flash_on),
       ),
     );
   }

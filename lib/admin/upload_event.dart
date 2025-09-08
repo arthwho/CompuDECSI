@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/services/category_service.dart';
+import 'package:compudecsi/utils/app_theme.dart';
 
 class UploadEvent extends StatefulWidget {
   const UploadEvent({super.key});
@@ -17,9 +18,9 @@ class UploadEvent extends StatefulWidget {
 
 class _UploadEventState extends State<UploadEvent> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController nameController = new TextEditingController();
-  TextEditingController descriptionController = new TextEditingController();
-  TextEditingController localController = new TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
+  TextEditingController localController = TextEditingController();
 
   List<Map<String, dynamic>> categories = [];
   List<Map<String, dynamic>> users = [];
@@ -234,12 +235,8 @@ class _UploadEventState extends State<UploadEvent> {
     return RoleGuard(
       requiredRoles: const {'admin', 'speaker'},
       builder: (context) => Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Criar Evento'),
-          backgroundColor: Colors.white,
-          elevation: 0,
-          foregroundColor: Colors.black,
           actions: [
             if (isSaving)
               const Padding(
@@ -254,13 +251,21 @@ class _UploadEventState extends State<UploadEvent> {
                 ),
               ),
           ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: context.customBorder, height: 1.0),
+          ),
         ),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
             : Container(
-                color: Colors.white,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: EdgeInsets.only(
+                    left: AppSpacing.viewPortSide,
+                    right: AppSpacing.viewPortSide,
+                    top: AppSpacing.viewPortSide,
+                    bottom: AppSpacing.viewPortBottom,
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -273,11 +278,15 @@ class _UploadEventState extends State<UploadEvent> {
                             labelText: 'Nome do Evento *',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -304,11 +313,15 @@ class _UploadEventState extends State<UploadEvent> {
                             labelText: 'Descrição *',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -334,11 +347,15 @@ class _UploadEventState extends State<UploadEvent> {
                             labelText: 'Local *',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -364,19 +381,19 @@ class _UploadEventState extends State<UploadEvent> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: context.customBorder),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: currentUserRole == 'speaker'
                               ? // Read-only display for speakers
                                 Row(
+                                  spacing: AppSize.sm,
                                   children: [
                                     selectedSpeaker?["Image"] != null &&
                                             selectedSpeaker!["Image"]
@@ -389,17 +406,14 @@ class _UploadEventState extends State<UploadEvent> {
                                             radius: 16,
                                           )
                                         : const CircleAvatar(
-                                            child: Icon(Icons.person),
                                             radius: 16,
+                                            child: Icon(Icons.person),
                                           ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Text(
                                         selectedSpeaker?["Name"] ?? "Você",
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 16,
-                                        ),
+                                        style: const TextStyle(fontSize: 16),
                                       ),
                                     ),
                                     const Icon(
@@ -433,8 +447,8 @@ class _UploadEventState extends State<UploadEvent> {
                                                     radius: 16,
                                                   )
                                                 : const CircleAvatar(
-                                                    child: Icon(Icons.person),
                                                     radius: 16,
+                                                    child: Icon(Icons.person),
                                                   ),
                                             const SizedBox(width: 10),
                                             Text(user["Name"] ?? "Sem nome"),
@@ -468,7 +482,6 @@ class _UploadEventState extends State<UploadEvent> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -478,7 +491,7 @@ class _UploadEventState extends State<UploadEvent> {
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         border: Border.all(
-                                          color: AppColors.border,
+                                          color: context.customBorder,
                                         ),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
@@ -492,9 +505,6 @@ class _UploadEventState extends State<UploadEvent> {
                                           Expanded(
                                             child: Text(
                                               formatTimeOfDay(selectedTime),
-                                              style: const TextStyle(
-                                                color: Colors.black,
-                                              ),
                                             ),
                                           ),
                                         ],
@@ -515,7 +525,6 @@ class _UploadEventState extends State<UploadEvent> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -525,7 +534,7 @@ class _UploadEventState extends State<UploadEvent> {
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         border: Border.all(
-                                          color: AppColors.border,
+                                          color: context.customBorder,
                                         ),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
@@ -541,9 +550,6 @@ class _UploadEventState extends State<UploadEvent> {
                                               DateFormat(
                                                 'dd/MM/yyyy',
                                               ).format(selectedDate),
-                                              style: const TextStyle(
-                                                color: Colors.black,
-                                              ),
                                             ),
                                           ),
                                         ],
@@ -559,16 +565,20 @@ class _UploadEventState extends State<UploadEvent> {
 
                         // Category Dropdown
                         DropdownButtonFormField<String>(
-                          value: selectedCategory,
+                          initialValue: selectedCategory,
                           decoration: InputDecoration(
                             labelText: 'Categoria *',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: context.customBorder,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -590,7 +600,7 @@ class _UploadEventState extends State<UploadEvent> {
                                 value: category['value'] as String,
                                 child: Text(category['name'] as String),
                               );
-                            }).toList(),
+                            }),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -607,14 +617,12 @@ class _UploadEventState extends State<UploadEvent> {
                         const SizedBox(height: 30),
 
                         // Save Button
-                        ElevatedButton(
+                        FilledButton(
                           onPressed: isSaving ? null : _saveEvent,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                          style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                           child: isSaving
@@ -652,14 +660,20 @@ class _UploadEventState extends State<UploadEvent> {
                               ? null
                               : () => Navigator.of(context).pop(),
                           style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Cancelar',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                         ),
                       ],

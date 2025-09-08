@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/services/category_service.dart';
 import 'package:compudecsi/services/event_service.dart';
@@ -7,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/admin/edit_event_page.dart';
 import 'package:compudecsi/admin/upload_event.dart';
-import 'package:compudecsi/admin/feedback_dashboard.dart';
 import 'package:compudecsi/services/feedback_service.dart';
 
 class ManageEventsPage extends StatefulWidget {
@@ -202,17 +202,18 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
     final status = event['status'] ?? 'scheduled';
 
     if (isFinished) {
-      return Colors.grey;
+      return context.customGrey;
     }
 
     switch (status) {
       case 'live':
-        return Colors.green;
+        return Theme.of(context).extension<theme.CustomColors>()?.success ??
+            Colors.green;
       case 'finished':
-        return Colors.grey;
+        return context.customGrey;
       case 'scheduled':
       default:
-        return Colors.blue;
+        return context.customBlue;
     }
   }
 
@@ -281,7 +282,6 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           title: const Text('Confirmar Exclusão'),
           content: Text(
             'Tem certeza que deseja excluir o evento "${event['name']}"?\n\nEsta ação não pode ser desfeita.',
@@ -381,7 +381,6 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,8 +398,6 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
               ),
           ],
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         actions: [
           if (userRole == 'admin')
             IconButton(
@@ -413,6 +410,10 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
             onPressed: _reloadEventsWithRole,
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
+        ),
       ),
       body: Column(
         children: [
@@ -424,7 +425,13 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                 hintText: 'Buscar eventos...',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<theme.CustomColors>()?.borderColor ??
+                        Colors.grey,
+                  ),
                   borderRadius: AppBorderRadius.md,
                 ),
               ),
@@ -454,11 +461,11 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                       final event = filteredEvents[index];
                       return Center(
                         child: Card(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(color: AppColors.border),
+                            side: BorderSide(color: context.customBorder),
                           ),
                           clipBehavior: Clip.antiAlias,
                           margin: const EdgeInsets.symmetric(
@@ -485,88 +492,93 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                                           ),
                                         ),
                                       ),
-                                      if (_canEditEvent(event))
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.edit),
-                                              onPressed: () =>
-                                                  _showEditEventDialog(event),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(
-                                                Icons.delete,
-                                                color: Colors.red,
-                                              ),
-                                              onPressed: () =>
-                                                  _showDeleteConfirmation(
-                                                    event,
-                                                  ),
-                                            ),
-                                          ],
+                                      SizedBox(width: AppSpacing.sm),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
                                         ),
-                                      // Feedback button for admins and speakers
-                                      if (userRole == 'admin' ||
-                                          userRole == 'speaker')
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.feedback,
-                                            color: Colors.orange,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: _getStatusColor(event),
                                           ),
-                                          onPressed: () =>
-                                              _showEventFeedback(event),
-                                          tooltip: 'Ver feedback do evento',
+                                          color: _getStatusColor(
+                                            event,
+                                          ).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
+                                        child: Text(
+                                          _getStatusText(event),
+                                          style: TextStyle(
+                                            color: _getStatusColor(event),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 16.0,
-                                    bottom: 8.0,
-                                  ),
+                                  padding: const EdgeInsets.only(left: 16.0),
                                   child: Row(
                                     children: [
                                       Text(
                                         event['date'] ?? 'Data não definida',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: AppColors.btnPrimary,
+                                          color: theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: AppSpacing.sm),
                                       Text(
                                         '•',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: AppColors.btnPrimary,
+                                          color: theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: AppSpacing.sm),
                                       Text(
                                         event['time'] ?? 'Horário não definido',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: AppColors.btnPrimary,
+                                          color: theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: AppSpacing.sm),
                                       Text(
                                         '•',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: AppColors.btnPrimary,
+                                          color: theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: AppSpacing.sm),
                                       Text(
                                         event['local'] ?? 'Local não definido',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: AppColors.btnPrimary,
+                                          color: theme
+                                              .CustomColors
+                                              .light
+                                              .highlightedText,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -586,7 +598,7 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(fontSize: 14),
                                       ),
-                                      SizedBox(height: 8),
+                                      SizedBox(height: AppSpacing.sm),
                                       Row(
                                         children: [
                                           const Icon(Icons.person, size: 16),
@@ -600,7 +612,7 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: 8),
+                                      SizedBox(height: AppSpacing.sm),
                                       Row(
                                         children: [
                                           Icon(
@@ -618,29 +630,51 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: _getStatusColor(
-                                            event,
-                                          ).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                      SizedBox(height: AppSpacing.md),
+                                      if (_canEditEvent(event))
+                                        IntrinsicHeight(
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.max,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.delete,
+                                                  color: Theme.of(context)
+                                                      .extension<
+                                                        theme.CustomColors
+                                                      >()
+                                                      ?.error,
+                                                ),
+                                                onPressed: () =>
+                                                    _showDeleteConfirmation(
+                                                      event,
+                                                    ),
+                                                tooltip: 'Excluir evento',
+                                              ),
+                                              VerticalDivider(),
+                                              if (userRole == 'admin' ||
+                                                  userRole == 'speaker')
+                                                IconButton(
+                                                  icon: Icon(Icons.feedback),
+                                                  onPressed: () =>
+                                                      _showEventFeedback(event),
+                                                  tooltip:
+                                                      'Ver feedback do evento',
+                                                ),
+                                              VerticalDivider(),
+                                              IconButton(
+                                                icon: const Icon(Icons.edit),
+                                                onPressed: () =>
+                                                    _showEditEventDialog(event),
+                                                tooltip: 'Editar evento',
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        child: Text(
-                                          _getStatusText(event),
-                                          style: TextStyle(
-                                            color: _getStatusColor(event),
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
+
+                                      // Feedback button for admins and speakers
                                     ],
                                   ),
                                 ),
@@ -654,28 +688,32 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
+        label: const Text('Criar evento'),
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const UploadEvent()),
         ),
-        child: const Icon(Icons.add),
+        icon: Icon(Icons.add),
+        elevation: 0,
         tooltip: 'Criar evento',
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+          border: Border(
+            top: BorderSide(color: context.customBorder, width: 1),
+          ),
         ),
         child: BottomAppBar(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           elevation: 8,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 const Text('Status: '),
-                const SizedBox(width: 8),
+                SizedBox(width: AppSpacing.sm),
                 DropdownButton<String>(
                   value: selectedStatusFilter,
                   items: [
@@ -728,8 +766,10 @@ class _EventFeedbackList extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Feedback — $title'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
+        ),
       ),
       body: StreamBuilder(
         stream: service.watchEventFeedback(eventId),

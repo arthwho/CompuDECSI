@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:compudecsi/utils/variables.dart';
 
 class QRCodeWidget extends StatelessWidget {
   final String data;
@@ -9,19 +8,19 @@ class QRCodeWidget extends StatelessWidget {
   final Color? foregroundColor;
 
   const QRCodeWidget({
-    Key? key,
+    super.key,
     required this.data,
     this.size = 200,
     this.backgroundColor,
     this.foregroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.white,
+        color: backgroundColor ?? Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -38,18 +37,15 @@ class QRCodeWidget extends StatelessWidget {
             data: data,
             version: QrVersions.auto,
             size: size,
-            backgroundColor: backgroundColor ?? Colors.white,
-            foregroundColor: foregroundColor ?? AppColors.purpleDark,
+            backgroundColor: backgroundColor ?? Theme.of(context).cardColor,
+            foregroundColor:
+                foregroundColor ?? Theme.of(context).textTheme.bodyLarge?.color,
             errorCorrectionLevel: QrErrorCorrectLevel.M,
           ),
           const SizedBox(height: 12),
           Text(
             'Código: $data',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.purpleDark,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(

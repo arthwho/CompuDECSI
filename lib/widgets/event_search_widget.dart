@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 
 class EventSearchWidget extends StatelessWidget {
   final Stream<QuerySnapshot<Map<String, dynamic>>> eventsStream;
@@ -11,7 +12,7 @@ class EventSearchWidget extends StatelessWidget {
   const EventSearchWidget({
     super.key,
     required this.eventsStream,
-    this.hintText = 'Buscar palestras',
+    this.hintText = 'Buscar eventos',
     required this.formatFirstAndLastName,
   });
 
@@ -99,11 +100,13 @@ class EventSearchWidget extends StatelessWidget {
           return SearchAnchor(
             builder: (BuildContext context, SearchController controller) {
               return SearchBar(
-                backgroundColor: WidgetStatePropertyAll(Colors.white),
+                backgroundColor: WidgetStatePropertyAll(
+                  Theme.of(context).cardColor,
+                ),
                 shape: WidgetStatePropertyAll(
                   RoundedRectangleBorder(
                     borderRadius: AppBorderRadius.md,
-                    side: BorderSide(color: AppColors.border, width: 1),
+                    side: BorderSide(color: context.customBorder, width: 1),
                   ),
                 ),
                 elevation: WidgetStatePropertyAll(0),
@@ -137,11 +140,13 @@ class EventSearchWidget extends StatelessWidget {
           return SearchAnchor(
             builder: (BuildContext context, SearchController controller) {
               return SearchBar(
-                backgroundColor: WidgetStatePropertyAll(Colors.white),
+                backgroundColor: WidgetStatePropertyAll(
+                  Theme.of(context).cardColor,
+                ),
                 shape: WidgetStatePropertyAll(
                   RoundedRectangleBorder(
                     borderRadius: AppBorderRadius.md,
-                    side: BorderSide(color: Colors.grey),
+                    side: BorderSide(color: context.customBorder),
                   ),
                 ),
                 elevation: WidgetStatePropertyAll(0),
@@ -176,11 +181,13 @@ class EventSearchWidget extends StatelessWidget {
         return SearchAnchor(
           builder: (BuildContext context, SearchController controller) {
             return SearchBar(
-              backgroundColor: WidgetStatePropertyAll(Colors.white),
+              backgroundColor: WidgetStatePropertyAll(
+                Theme.of(context).cardColor,
+              ),
               shape: WidgetStatePropertyAll(
                 RoundedRectangleBorder(
                   borderRadius: AppBorderRadius.md,
-                  side: BorderSide(color: Colors.grey),
+                  side: BorderSide(color: context.customBorder),
                 ),
               ),
               elevation: WidgetStatePropertyAll(0),

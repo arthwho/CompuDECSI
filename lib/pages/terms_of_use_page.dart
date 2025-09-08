@@ -1,3 +1,4 @@
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:compudecsi/utils/variables.dart';
 
@@ -7,15 +8,16 @@ class TermsOfUsePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Termos de Uso'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
         ),
       ),
       body: SingleChildScrollView(
@@ -25,11 +27,7 @@ class TermsOfUsePage extends StatelessWidget {
           children: [
             const Text(
               'Termos de Uso do CompuDECSI',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                color: Colors.black,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
             ),
             const SizedBox(height: 8),
             Text(
@@ -230,21 +228,10 @@ class TermsOfUsePage extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.black,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: 12),
-        Text(
-          content,
-          style: const TextStyle(
-            fontSize: 16,
-            height: 1.5,
-            color: Colors.black87,
-          ),
-        ),
+        Text(content, style: const TextStyle(fontSize: 16, height: 1.5)),
         const SizedBox(height: 24),
       ],
     );

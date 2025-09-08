@@ -1,5 +1,6 @@
 import 'package:compudecsi/models/question.dart';
 import 'package:compudecsi/services/question_service.dart';
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/widgets/question_card.dart';
 import 'package:compudecsi/widgets/question_input.dart';
@@ -20,10 +21,12 @@ class QAPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(sessionTitle ?? 'Q&A'),
-        backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(AppSpacing.viewPortSide),

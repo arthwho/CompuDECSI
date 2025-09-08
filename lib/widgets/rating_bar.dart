@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:compudecsi/utils/variables.dart';
 
 class RatingBar extends StatelessWidget {
   final int value; // 1..5

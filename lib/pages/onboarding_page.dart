@@ -19,7 +19,6 @@ class _OnboardingState extends State<Onboarding> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
       body: Stack(
         children: [
           const AnimatedBackground(),
@@ -130,7 +129,9 @@ class AnimatedDot extends StatelessWidget {
       height: 6,
       width: isActive ? 20 : 6,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.btnPrimary : Color(0xFF868686),
+        color: isActive
+            ? Theme.of(context).colorScheme.primary
+            : Color(0xFF868686),
         borderRadius: BorderRadius.circular(12),
       ),
     );
@@ -145,12 +146,12 @@ class FlexibleAssetImage extends StatelessWidget {
   final BoxFit fit;
 
   const FlexibleAssetImage({
-    Key? key,
+    super.key,
     required this.assetName,
     this.width,
     this.height,
     this.fit = BoxFit.contain,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -207,14 +208,18 @@ class OnboardingContent extends StatelessWidget {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 16),
           Text(
             text,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -257,7 +262,7 @@ class AnimatedBackground extends StatelessWidget {
     // You can adjust the number of boxes here
     const int boxCount = 20;
 
-    return Container(
+    return SizedBox(
       width: screenWidth,
       height: screenHeight,
       child: Stack(
@@ -363,14 +368,8 @@ class _FloatingBoxState extends State<FloatingBox>
         width: widget.size,
         height: widget.size,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [
-              Color.fromARGB(57, 237, 247, 255),
-              Color.fromRGBO(224, 231, 237, 0.467),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          color: Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     );

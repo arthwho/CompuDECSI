@@ -1,5 +1,6 @@
 import 'package:compudecsi/services/feedback_service.dart';
 import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 import 'package:compudecsi/widgets/rating_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -100,17 +101,15 @@ class _FeedbackPageState extends State<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Avaliar evento'),
-        backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
+        ),
       ),
       body: Padding(
-        padding: EdgeInsets.only(
-          left: AppSpacing.viewPortSide,
-          right: AppSpacing.viewPortSide,
-          bottom: AppSpacing.viewPortSide,
-        ),
+        padding: EdgeInsets.all(AppSpacing.viewPortSide),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -118,7 +117,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               widget.eventTitle?.startsWith('Avaliar — ') == true
                   ? widget.eventTitle!.substring(10)
                   : (widget.eventTitle ?? 'Avaliar evento'),
-              style: AppTextStyle.heading1,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: AppSpacing.lg),
             Center(
@@ -148,7 +147,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
             Center(
               child: Text(
                 'Quantas estrelas você daria para este evento?',
-                style: AppTextStyle.body,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -161,7 +159,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               ),
             ),
             SizedBox(height: AppSpacing.lg * 2),
-            Text('Faça um comentário! (opcional)', style: AppTextStyle.body),
+            Text('Faça um comentário! (opcional)'),
             const SizedBox(height: 8),
             TextField(
               controller: _commentCtrl,
@@ -174,7 +172,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 hintText: 'Conte como foi sua experiência...',
                 border: OutlineInputBorder(
                   borderRadius: AppBorderRadius.md,
-                  borderSide: BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.customBorder),
                 ),
               ),
             ),
@@ -184,10 +182,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+          border: Border(
+            top: BorderSide(color: context.customBorder, width: 1),
+          ),
         ),
         child: BottomAppBar(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           elevation: 8,
           height: 80,
           child: Padding(

@@ -7,6 +7,8 @@ import 'package:compudecsi/pages/privacy_policy_page.dart';
 import 'package:compudecsi/pages/terms_of_use_page.dart';
 import 'package:compudecsi/pages/notification_settings_page.dart';
 import 'package:animated_emoji/animated_emoji.dart';
+import 'package:compudecsi/main.dart';
+import 'package:compudecsi/utils/app_theme.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -22,11 +24,29 @@ class _ProfileState extends State<Profile> {
   String? userImage;
   String? userRole;
   String selectedEmoji = 'alienMonster'; // Default emoji
+  final ThemeManager _themeManager = ThemeManager.instance;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  void _toggleTheme(bool value) async {
+    // Use ThemeManager to set the theme
+    await _themeManager.setTheme(value);
+
+    // Force rebuild to update the UI
+    setState(() {});
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(value ? 'Tema escuro ativado' : 'Tema claro ativado'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _loadUserData() async {
@@ -90,7 +110,6 @@ class _ProfileState extends State<Profile> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           title: const Text('Escolher Emoji'),
           content: SizedBox(
             width: double.maxFinite,
@@ -120,11 +139,13 @@ class _ProfileState extends State<Profile> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.accent : Colors.grey[100],
+                      color: isSelected
+                          ? context.secondaryContainer
+                          : Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(12),
                       border: isSelected
-                          ? Border.all(color: AppColors.primary, width: 2)
-                          : null,
+                          ? Border.all(color: context.primaryColor, width: 1)
+                          : Border.all(color: context.customBorder, width: 1),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -141,7 +162,9 @@ class _ProfileState extends State<Profile> {
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
-                            color: isSelected ? Colors.white : Colors.black,
+                            color: isSelected
+                                ? context.primaryColor
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -202,7 +225,7 @@ class _ProfileState extends State<Profile> {
     if (parts.length == 1) {
       return _capitalize(parts[0]);
     } else {
-      return _capitalize(parts.first) + ' ' + _capitalize(parts.last);
+      return '${_capitalize(parts.first)} ${_capitalize(parts.last)}';
     }
   }
 
@@ -235,7 +258,6 @@ class _ProfileState extends State<Profile> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.white,
           title: const Text('Confirmar Logout'),
           content: const Text('Tem certeza que deseja sair da sua conta?'),
           actions: [
@@ -261,23 +283,18 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     if (user == null) {
       return Scaffold(
-        backgroundColor: Colors.white,
-
         appBar: AppBar(
           title: const Text('Perfil'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
         body: const Center(child: Text('Faça login para ver seu perfil')),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Perfil'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -285,8 +302,6 @@ class _ProfileState extends State<Profile> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
-
             // Profile Picture
             CircleAvatar(
               radius: 60,
@@ -305,11 +320,7 @@ class _ProfileState extends State<Profile> {
               formatFirstAndLastName(userName) != ''
                   ? formatFirstAndLastName(userName)
                   : 'Usuário',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
             SizedBox(height: AppSpacing.sm),
@@ -326,13 +337,13 @@ class _ProfileState extends State<Profile> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.accent,
-                borderRadius: BorderRadius.circular(20),
+                color: context.primaryColor,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
                 _getRoleDisplayName(userRole),
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: context.onPrimaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -344,7 +355,6 @@ class _ProfileState extends State<Profile> {
             // Profile Options
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: AppColors.grey.withValues(alpha: 0.3),
@@ -371,10 +381,7 @@ class _ProfileState extends State<Profile> {
                   ),
                   const Divider(height: 1), */
                   ListTile(
-                    leading: Icon(
-                      Icons.notifications_outlined,
-                      color: AppColors.purpleDark,
-                    ),
+                    leading: Icon(Icons.notifications_outlined),
                     title: const Text('Notificações'),
                     subtitle: const Text('Configurar preferências'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -417,6 +424,20 @@ class _ProfileState extends State<Profile> {
                     onTap: () {
                       _showEmojiSelectionDialog();
                     },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: Icon(
+                      _themeManager.isDarkMode
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                    ),
+                    title: const Text('Modo escuro'),
+                    subtitle: const Text('Alternar entre tema claro e escuro'),
+                    trailing: Switch(
+                      value: _themeManager.isDarkMode,
+                      onChanged: _toggleTheme,
+                    ),
                   ),
                 ],
               ),
@@ -466,8 +487,14 @@ class _ProfileState extends State<Profile> {
               child: OutlinedButton(
                 onPressed: _showLogoutDialog,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.destructive,
-                  side: BorderSide(color: AppColors.destructive, width: 2),
+                  foregroundColor: context.appColors.error,
+                  backgroundColor: context.appColors.error.withValues(
+                    alpha: 0.1,
+                  ),
+                  side: BorderSide(
+                    color: context.appColors.error.withValues(alpha: 0.5),
+                    width: 2,
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

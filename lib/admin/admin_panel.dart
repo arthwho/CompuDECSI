@@ -4,6 +4,7 @@ import 'package:compudecsi/admin/manage_categories.dart';
 import 'package:compudecsi/admin/manage_events.dart';
 import 'package:compudecsi/admin/qr_scanner_page.dart';
 import 'package:compudecsi/admin/checkin_audit_page.dart';
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:compudecsi/utils/role_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,10 +20,12 @@ class AdminPanel extends StatelessWidget {
       builder: (context) => Scaffold(
         appBar: AppBar(
           title: const Text('Administração'),
-          backgroundColor: Colors.white,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: context.customBorder, height: 1.0),
+          ),
         ),
         body: Container(
-          color: Colors.white,
           child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
             stream: FirebaseFirestore.instance
                 .collection('users')
@@ -107,9 +110,11 @@ class AdminPanel extends StatelessWidget {
                   if (isAdmin || isStaff) ...[
                     ListTile(
                       leading: const Icon(Icons.assessment),
-                      title: Text(isAdmin ? 'Auditoria de Check-ins' : 'Check-ins'),
+                      title: Text(
+                        isAdmin ? 'Auditoria de Check-ins' : 'Check-ins',
+                      ),
                       subtitle: Text(
-                        isAdmin 
+                        isAdmin
                             ? 'Verificar check-ins por evento e staff'
                             : 'Verificar check-ins e realizar novos',
                       ),

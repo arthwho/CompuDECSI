@@ -7,6 +7,7 @@ class SharedpreferenceHelper {
   static String userImageKey = "USERIMAGEKEY";
   static String userEmojiKey = "USEREMOJIKEY";
   static String termsAcceptedKey = "TERMSACCEPTEDKEY";
+  static String isDarkModeKey = "ISDARKMDOEKEY";
 
   Future<bool> saveUserId(String getUserId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -66,5 +67,15 @@ class SharedpreferenceHelper {
   Future<bool?> getTermsAccepted() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(termsAcceptedKey);
+  }
+
+  Future<bool> saveIsDarkMode(bool isDarkMode) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setBool(isDarkModeKey, isDarkMode);
+  }
+
+  Future<bool> getIsDarkMode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(isDarkModeKey) ?? false;
   }
 }

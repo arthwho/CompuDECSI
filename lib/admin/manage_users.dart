@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 import 'package:compudecsi/utils/variables.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -113,15 +114,16 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
     final currentUid = _auth.currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: _isSelectionMode
             ? Text('${_selectedUserIds.length} usuários selecionados')
             : const Text('Gerenciar usuários'),
-        backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
+        ),
       ),
       body: Container(
-        color: Colors.white,
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: currentUid == null
               ? null
@@ -146,7 +148,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                   child: TextField(
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(color: context.customBorder),
                         borderRadius: AppBorderRadius.md,
                       ),
                       labelText: 'Buscar por nome ou email',
@@ -319,10 +321,12 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+          border: Border(
+            top: BorderSide(color: context.customBorder, width: 1),
+          ),
         ),
         child: BottomAppBar(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           elevation: 8,
           height: 80,
           child: Padding(
@@ -334,7 +338,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                       FilledButton(
                         onPressed: _toggleSelectionMode,
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.destructive,
+                          backgroundColor: context.appColors.error,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -398,10 +402,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                               });
                             }
                           },
-                          icon: const Icon(
-                            Icons.admin_panel_settings,
-                            color: Colors.white,
-                          ),
+                          icon: const Icon(Icons.admin_panel_settings),
                           label: const Text(
                             'Alterar papel em massa',
                             style: TextStyle(fontWeight: FontWeight.bold),

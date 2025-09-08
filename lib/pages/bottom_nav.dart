@@ -6,9 +6,8 @@ import 'package:compudecsi/pages/home.dart';
 import 'package:compudecsi/pages/profile.dart';
 import 'package:compudecsi/admin/admin_panel.dart';
 import 'package:compudecsi/admin/manage_events.dart';
-import 'package:compudecsi/admin/qr_scanner_page.dart';
 import 'package:compudecsi/admin/checkin_audit_page.dart';
-import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -29,7 +28,7 @@ class _BottomNavState extends State<BottomNav> {
         page: const Home(),
       ),
       _TabItem(
-        label: 'Minhas Palestras',
+        label: 'Meus ingressos',
         icon: const Icon(Icons.confirmation_num_outlined),
         selectedIcon: const Icon(Icons.confirmation_num),
         page: const Booking(),
@@ -72,7 +71,7 @@ class _BottomNavState extends State<BottomNav> {
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(color: Color(0xffC4C4C4), width: 1),
+                top: BorderSide(color: context.customBorder, width: 1),
               ),
             ),
             child: NavigationBar(
@@ -80,7 +79,7 @@ class _BottomNavState extends State<BottomNav> {
               labelTextStyle: const WidgetStatePropertyAll(
                 TextStyle(fontWeight: FontWeight.bold),
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).cardColor,
               selectedIndex: currentIndex,
               onDestinationSelected: (int index) {
                 setState(() {
@@ -106,10 +105,8 @@ class _BottomNavState extends State<BottomNav> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Color(
-                              0xff841e73,
-                            ), // Your primary purple color
-                            width: 2,
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 1,
                           ),
                         ),
                       ),
@@ -127,41 +124,70 @@ class _BottomNavState extends State<BottomNav> {
           ),
           body: tabs[currentIndex].page,
           floatingActionButton: hasAdminAccess
-              ? FloatingActionButton.extended(
-                  onPressed: () {
-                    if (isSpeaker) {
-                      // For lecturers (speakers), navigate to manage events page
+              ? Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: Theme.of(context).brightness == Brightness.dark
+                        ? [
+                            BoxShadow(
+                              color: Colors.grey[900]!.withOpacity(0.4),
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                  ),
+                  child: FloatingActionButton.extended(
+                    onPressed: () {
+                      if (isSpeaker) {
+                        // For lecturers (speakers), navigate to manage events page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ManageEventsPage(),
+                          ),
+                        );
+                      } else {
+                        // For admins, navigate to admin panel
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminPanel()),
+                        );
+                      }
+                    },
+                    icon: Icon(
+                      isSpeaker ? Icons.event : Icons.admin_panel_settings,
+                    ),
+                    label: Text(isSpeaker ? 'Meus eventos' : 'Admin'),
+                    elevation:
+                        0, // Remove default elevation since we're using custom shadow
+                  ),
+                )
+              : hasStaffAccess
+              ? Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: FloatingActionButton.extended(
+                    onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ManageEventsPage(),
+                          builder: (_) => const CheckinAuditPage(),
                         ),
                       );
-                    } else {
-                      // For admins, navigate to admin panel
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AdminPanel()),
-                      );
-                    }
-                  },
-                  icon: Icon(
-                    isSpeaker ? Icons.event : Icons.admin_panel_settings,
+                    },
+                    icon: const Icon(Icons.event_available),
+                    label: const Text('Check-ins'),
+                    elevation:
+                        0, // Remove default elevation since we're using custom shadow
                   ),
-                  label: Text(isSpeaker ? 'Meus Eventos' : 'Admin'),
-                )
-              : hasStaffAccess
-              ? FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CheckinAuditPage(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.event_available),
-                  label: const Text('Check-ins'),
                 )
               : null,
         );

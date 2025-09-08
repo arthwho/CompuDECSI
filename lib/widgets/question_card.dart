@@ -1,5 +1,6 @@
 import 'package:compudecsi/models/question.dart';
 import 'package:compudecsi/services/question_service.dart';
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:compudecsi/utils/role_guard.dart';
 import 'package:flutter/material.dart';
 
@@ -18,8 +19,12 @@ class QuestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: context.customBorder, width: 1),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.only(top: 8, bottom: 12, left: 16, right: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -55,18 +60,18 @@ class QuestionCard extends StatelessWidget {
                     // We re-import locally to avoid circular deps
                     // ignore: prefer_const_constructors
                     _Vote(sessionId: sessionId, q: question, service: service),
-                    RoleGuard(
-                      requiredRoles: {'admin', 'speaker'},
-                      builder: (_) => _ModeratorActions(
-                        sessionId: sessionId,
-                        q: question,
-                        service: service,
-                      ),
-                      fallback: const SizedBox.shrink(),
-                    ),
                   ],
                 ),
               ],
+            ),
+            RoleGuard(
+              requiredRoles: {'admin', 'speaker'},
+              builder: (_) => _ModeratorActions(
+                sessionId: sessionId,
+                q: question,
+                service: service,
+              ),
+              fallback: const SizedBox.shrink(),
             ),
           ],
         ),
@@ -142,7 +147,8 @@ class _ModeratorActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           tooltip: 'Aceitar',
@@ -151,7 +157,10 @@ class _ModeratorActions extends StatelessWidget {
             questionId: q.id,
             status: 'accepted',
           ),
-          icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+          icon: Icon(
+            Icons.check_circle_outline,
+            color: Theme.of(context).extension<CustomColors>()?.success,
+          ),
         ),
         IconButton(
           tooltip: 'Responder',
@@ -160,9 +169,9 @@ class _ModeratorActions extends StatelessWidget {
             questionId: q.id,
             status: 'answered',
           ),
-          icon: const Icon(
+          icon: Icon(
             Icons.record_voice_over_outlined,
-            color: Colors.blue,
+            color: context.customLightBlue,
           ),
         ),
         IconButton(
@@ -174,7 +183,7 @@ class _ModeratorActions extends StatelessWidget {
           ),
           icon: Icon(
             q.pinned ? Icons.push_pin : Icons.push_pin_outlined,
-            color: Colors.deepPurple,
+            color: context.customGrey,
           ),
         ),
         IconButton(
@@ -184,7 +193,10 @@ class _ModeratorActions extends StatelessWidget {
             questionId: q.id,
             status: 'rejected',
           ),
-          icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+          icon: Icon(
+            Icons.cancel_outlined,
+            color: Theme.of(context).extension<CustomColors>()?.error,
+          ),
         ),
       ],
     );

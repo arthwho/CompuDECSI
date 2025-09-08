@@ -1,3 +1,4 @@
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/category_service.dart';
 
@@ -55,7 +56,6 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: Colors.white,
               title: const Text('Adicionar Categoria'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -77,7 +77,7 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: selectedIcon,
+                    initialValue: selectedIcon,
                     decoration: const InputDecoration(labelText: 'Ícone'),
                     items: [
                       DropdownMenuItem(
@@ -183,7 +183,6 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: Colors.white,
               title: const Text('Editar Categoria'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -203,7 +202,7 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: selectedIcon,
+                    initialValue: selectedIcon,
                     decoration: const InputDecoration(labelText: 'Ícone'),
                     items: [
                       DropdownMenuItem(
@@ -304,7 +303,6 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           title: const Text('Confirmar Exclusão'),
           content: Text(
             'Tem certeza que deseja excluir a categoria "${category['name']}"?',
@@ -343,10 +341,7 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text(
-                'Excluir',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('Excluir'),
             ),
           ],
         );
@@ -357,20 +352,20 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Gerenciar Categorias'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _showAddCategoryDialog,
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: context.customBorder, height: 1.0),
+        ),
       ),
       body: Container(
-        color: Colors.white,
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : ListView.builder(

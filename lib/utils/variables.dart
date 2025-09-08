@@ -16,6 +16,7 @@ class AppColors {
   static Color textFieldBackground = Color(0xffE5E5E5);
   static Color genderTextColor = Color(0xffA6A6A6);
   static Color border = Color(0xffC4C4C4);
+  static Color borderDark = Color(0xFF404040);
   static Color circle = Color(0xffE2E2E2);
   static Color whitegrey = Color(0xffC3C2C2);
   static Color grey = Color(0xff918F8F);

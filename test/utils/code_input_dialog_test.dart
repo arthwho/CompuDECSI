@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<void> _openDialog(
+  Future<void> openDialog(
     WidgetTester tester,
     void Function(String) onSubmit,
   ) async {
@@ -37,7 +37,7 @@ void main() {
     tester,
   ) async {
     String? submitted;
-    await _openDialog(tester, (c) => submitted = c);
+    await openDialog(tester, (c) => submitted = c);
 
     // Bottom sheet content should be visible now
     final field = find.byType(TextField);
@@ -53,7 +53,7 @@ void main() {
   });
 
   testWidgets('shows error when less than 6 digits', (tester) async {
-    await _openDialog(tester, (_) {});
+    await openDialog(tester, (_) {});
 
     final field = find.byType(TextField);
     await tester.enterText(field, '12345');

@@ -4,6 +4,7 @@ import 'package:compudecsi/pages/detail_page.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/services/event_service.dart';
 import 'package:compudecsi/utils/variables.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 import 'package:flutter/material.dart';
 
 class Booking extends StatefulWidget {
@@ -25,7 +26,7 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
     if (parts.length == 1) {
       return _capitalize(parts[0]);
     } else {
-      return _capitalize(parts.first) + ' ' + _capitalize(parts.last);
+      return '${_capitalize(parts.first)} ${_capitalize(parts.last)}';
     }
   }
 
@@ -51,27 +52,24 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Minhas Palestras'),
-          backgroundColor: Colors.white,
+          title: Text('Meus Ingressos'),
+          backgroundColor: Theme.of(context).cardColor,
         ),
-        body: Center(child: Text('Faça login para ver suas palestras')),
+        body: Center(child: Text('Faça login para ver seus ingressos')),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Minhas Palestras'),
-        backgroundColor: Colors.white,
+        title: Text('Meus Ingressos'),
+        backgroundColor: Theme.of(context).cardColor,
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primary,
           unselectedLabelColor: Colors.grey,
-          indicatorColor: AppColors.primary,
           tabs: const [
-            Tab(text: 'Todas'),
-            Tab(text: 'Agendadas'),
-            Tab(text: 'Finalizadas'),
+            Tab(text: 'Todos'),
+            Tab(text: 'Agendados'),
+            Tab(text: 'Finalizados'),
           ],
         ),
       ),
@@ -165,7 +163,7 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                 Icon(Icons.schedule, size: 80, color: Colors.grey[400]),
                 SizedBox(height: 16),
                 Text(
-                  'Nenhuma palestra agendada',
+                  'Nenhum evento agendado',
                   style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
@@ -205,7 +203,7 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                 Icon(Icons.check_circle, size: 80, color: Colors.grey[400]),
                 SizedBox(height: 16),
                 Text(
-                  'Nenhuma palestra finalizada',
+                  'Nenhum evento finalizado',
                   style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
@@ -266,8 +264,8 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
             SizedBox(height: 16),
             Text(
               showOnlyScheduled
-                  ? 'Nenhuma palestra agendada'
-                  : 'Nenhuma palestra finalizada',
+                  ? 'Nenhum evento agendado'
+                  : 'Nenhum evento finalizado',
               style: TextStyle(fontSize: 18, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
@@ -306,10 +304,6 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
           return SizedBox.shrink();
         }
 
-        if (eventId == null) {
-          return SizedBox.shrink();
-        }
-
         return FutureBuilder<DocumentSnapshot?>(
           future: _databaseMethods.getEventById(eventId),
           builder: (context, eventSnapshot) {
@@ -335,11 +329,11 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
 
             return Center(
               child: Card(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: AppColors.border),
+                  side: BorderSide(color: context.customBorder),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
@@ -377,6 +371,7 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                                 ),
                               ),
                             ),
+                            SizedBox(width: AppSpacing.sm),
                             Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -384,16 +379,24 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                               ),
                               decoration: BoxDecoration(
                                 color: isFinished
-                                    ? Colors.grey
-                                    : AppColors.accent,
-                                borderRadius: BorderRadius.circular(12),
+                                    ? context.customGrey.withValues(alpha: 0.1)
+                                    : context.customBlue.withValues(alpha: 0.1),
+                                border: Border.all(
+                                  color: isFinished
+                                      ? context.customGrey
+                                      : context.customBlue,
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                isFinished ? 'Finalizada' : 'Agendada',
+                                isFinished ? 'Finalizado' : 'Agendado',
                                 style: TextStyle(
-                                  color: Colors.white,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
+                                  color: isFinished
+                                      ? context.customGrey
+                                      : context.customBlue,
                                 ),
                               ),
                             ),
@@ -408,7 +411,11 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                               eventData['date'] ?? '',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -417,7 +424,11 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                               '•',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                               ),
                             ),
                             SizedBox(width: 8),
@@ -425,7 +436,11 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                               eventData['time'] ?? '',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -434,7 +449,11 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                               '•',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                               ),
                             ),
                             SizedBox(width: 8),
@@ -442,7 +461,11 @@ class _BookingState extends State<Booking> with SingleTickerProviderStateMixin {
                               eventData['local'] ?? '',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.btnPrimary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<theme.CustomColors>()
+                                        ?.highlightedText ??
+                                    theme.CustomColors.light.highlightedText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

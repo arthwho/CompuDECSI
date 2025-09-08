@@ -1,3 +1,4 @@
+import 'package:compudecsi/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:compudecsi/services/notification_service.dart';
 import 'package:compudecsi/utils/variables.dart';
@@ -185,15 +186,19 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Configurações de Notificação'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text('Configurações de Notificação'),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: AppColors.grey.withValues(alpha: 0.3),
+            height: 1.0,
+          ),
         ),
       ),
       body: _isLoading
@@ -206,7 +211,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   // Notification Status Card
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: AppColors.grey.withValues(alpha: 0.3),
@@ -234,7 +238,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
                                 ),
                               ),
                             ],
@@ -318,7 +321,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   // Notification Types Card
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: AppColors.grey.withValues(alpha: 0.3),
@@ -331,18 +333,11 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                Icons.settings,
-                                color: AppColors.primary,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 12),
                               Text(
                                 'Tipos de Notificação',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
                                 ),
                               ),
                             ],
@@ -373,7 +368,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   // Scheduled Notifications Card
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: AppColors.grey.withValues(alpha: 0.3),
@@ -386,18 +380,11 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                Icons.schedule,
-                                color: AppColors.primary,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 12),
                               Text(
                                 'Notificações Agendadas',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
                                 ),
                               ),
                             ],
@@ -408,7 +395,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: Colors.grey[50],
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
@@ -483,28 +469,20 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.accent.withValues(alpha: 0.3),
-                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: context.customBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.info_outline,
-                              color: AppColors.accent,
-                              size: 20,
-                            ),
+                            Icon(Icons.info_outline, size: 20),
                             const SizedBox(width: 8),
                             Text(
                               'Como funcionam as notificações',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.accent,
                                 fontSize: 16,
                               ),
                             ),
@@ -516,11 +494,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                           '• As notificações incluem o nome do evento e local\n'
                           '• Você pode cancelar notificações individuais ou todas de uma vez\n'
                           '• As notificações são agendadas automaticamente quando você se inscreve em um evento',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.grey,
-                            height: 1.5,
-                          ),
+                          style: TextStyle(fontSize: 14, height: 1.5),
                         ),
                       ],
                     ),
@@ -545,7 +519,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         children: [
           Icon(
             icon,
-            color: enabled ? AppColors.primary : Colors.grey,
+            color: enabled ? Theme.of(context).iconTheme.color : Colors.grey,
             size: 24,
           ),
           const SizedBox(width: 12),
@@ -558,7 +532,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: enabled ? Colors.black : Colors.grey,
+                    color: enabled
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Colors.grey,
                   ),
                 ),
                 Text(
@@ -571,7 +547,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           Switch(
             value: enabled,
             onChanged: null, // Disabled for now
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
           ),
         ],
       ),

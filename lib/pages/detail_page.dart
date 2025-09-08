@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:compudecsi/admin/manage_events.dart';
 import 'package:compudecsi/widgets/qr_code_bottom_sheet.dart';
 import 'dart:async';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 
 // ignore: must_be_immutable
 class DetailsPage extends StatefulWidget {
@@ -20,6 +21,7 @@ class DetailsPage extends StatefulWidget {
   String? eventId;
   String? speakerImage;
   DetailsPage({
+    super.key,
     required this.image,
     required this.name,
     required this.local,
@@ -322,7 +324,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
   String _formatEnrollmentCode(String code) {
     if (code.length == 6) {
-      return code.substring(0, 3) + ' ' + code.substring(3);
+      return '${code.substring(0, 3)} ${code.substring(3)}';
     }
     return code;
   }
@@ -444,7 +446,7 @@ class _DetailsPageState extends State<DetailsPage> {
     if (parts.length == 1) {
       return _capitalize(parts[0]);
     } else {
-      return _capitalize(parts.first) + ' ' + _capitalize(parts.last);
+      return '${_capitalize(parts.first)} ${_capitalize(parts.last)}';
     }
   }
 
@@ -491,7 +493,6 @@ class _DetailsPageState extends State<DetailsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           title: const Text('Confirmar Exclusão'),
           content: Text(
             'Tem certeza que deseja excluir o evento "${widget.name}"?\n\nEsta ação não pode ser desfeita.',
@@ -543,13 +544,9 @@ class _DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          '',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.white,
+        title: Text(''),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
@@ -571,7 +568,6 @@ class _DetailsPageState extends State<DetailsPage> {
         ],
       ),
       body: Container(
-        color: Colors.white,
         margin: EdgeInsets.only(
           left: AppSpacing.viewPortSide,
           right: AppSpacing.viewPortSide,
@@ -584,7 +580,7 @@ class _DetailsPageState extends State<DetailsPage> {
             Container(
               child: Column(
                 children: [
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: Text(
                       widget.name,
@@ -601,14 +597,22 @@ class _DetailsPageState extends State<DetailsPage> {
                       children: [
                         Icon(
                           Icons.event_available,
-                          color: AppColors.purpleDark,
+                          color:
+                              Theme.of(context)
+                                  .extension<theme.CustomColors>()
+                                  ?.highlightedText ??
+                              theme.CustomColors.light.highlightedText,
                           size: 20,
                         ),
                         SizedBox(width: 6),
                         Text(
                           'Evento finalizado',
                           style: TextStyle(
-                            color: AppColors.purpleDark,
+                            color:
+                                Theme.of(context)
+                                    .extension<theme.CustomColors>()
+                                    ?.highlightedText ??
+                                theme.CustomColors.light.highlightedText,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -624,7 +628,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             widget.date,
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.purpleDark,
+                              color:
+                                  Theme.of(context)
+                                      .extension<theme.CustomColors>()
+                                      ?.highlightedText ??
+                                  theme.CustomColors.light.highlightedText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -633,7 +641,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             '•',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.purpleDark,
+                              color:
+                                  Theme.of(context)
+                                      .extension<theme.CustomColors>()
+                                      ?.highlightedText ??
+                                  theme.CustomColors.light.highlightedText,
                             ),
                           ),
                           SizedBox(width: 8),
@@ -641,7 +653,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             widget.time,
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.purpleDark,
+                              color:
+                                  Theme.of(context)
+                                      .extension<theme.CustomColors>()
+                                      ?.highlightedText ??
+                                  theme.CustomColors.light.highlightedText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -650,7 +666,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             '•',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.purpleDark,
+                              color:
+                                  Theme.of(context)
+                                      .extension<theme.CustomColors>()
+                                      ?.highlightedText ??
+                                  theme.CustomColors.light.highlightedText,
                             ),
                           ),
                           SizedBox(width: 8),
@@ -658,7 +678,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             widget.local,
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.purpleDark,
+                              color:
+                                  Theme.of(context)
+                                      .extension<theme.CustomColors>()
+                                      ?.highlightedText ??
+                                  theme.CustomColors.light.highlightedText,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -699,10 +723,10 @@ class _DetailsPageState extends State<DetailsPage> {
                     ],
                   ),
                   SizedBox(height: AppSpacing.md),
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: Text(
-                      widget.description!,
+                      widget.description,
                       style: TextStyle(fontSize: 16),
                       textAlign: TextAlign.left,
                     ),
@@ -711,26 +735,28 @@ class _DetailsPageState extends State<DetailsPage> {
 
                   // QR Code button (only show when enrolled and event is not finished)
                   if (_isEnrolled && !_isLoadingEnrollment && !_isFinished)
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: context.customCategoryBG,
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
                         onPressed: _showQRCodeBottomSheet,
                         icon: Icon(
                           Icons.qr_code_scanner,
-                          color: AppColors.btnPrimary,
+                          color: context.customCategoryBG,
                         ),
                         label: Text(
                           'VER INGRESSO',
-                          style: TextStyle(color: AppColors.btnPrimary),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.btnPrimary,
-                          side: BorderSide(
-                            color: AppColors.btnPrimary,
-                            width: 1,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppBorderRadius.sm,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: context.customCategoryBG,
                           ),
                         ),
                       ),
@@ -752,7 +778,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       child: TextButton(
                         onPressed: _unenrollFromEvent,
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.destructive,
+                          foregroundColor: context.appColors.error,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -771,10 +797,12 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+          border: Border(
+            top: BorderSide(color: context.customBorder, width: 1),
+          ),
         ),
         child: BottomAppBar(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           elevation: 8,
           height: 80, // Increased height to accommodate the button
           child: Padding(
@@ -784,7 +812,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 : _isFinished && _isEnrolled
                 ? FilledButton(
                     onPressed: () {
-                      final title = 'Avaliar — ' + widget.name;
+                      final title = 'Avaliar — ${widget.name}';
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -807,6 +835,7 @@ class _DetailsPageState extends State<DetailsPage> {
                   )
                 : _isFinished && !_isEnrolled
                 ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.info_outline,
@@ -814,14 +843,9 @@ class _DetailsPageState extends State<DetailsPage> {
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Este evento já foi finalizado :(',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
+                      Text(
+                        'Você não participou deste evento :(',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                     ],
                   )
@@ -859,7 +883,7 @@ class _DetailsPageState extends State<DetailsPage> {
                                 MaterialPageRoute(
                                   builder: (_) => QAPage(
                                     sessionId: sessionId,
-                                    sessionTitle: 'Q&A — ' + widget.name,
+                                    sessionTitle: 'Q&A — ${widget.name}',
                                   ),
                                 ),
                               );

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compudecsi/services/database.dart';
 import 'package:compudecsi/utils/variables.dart';
 import 'package:compudecsi/admin/qr_scanner_page.dart';
+import 'package:compudecsi/utils/app_theme.dart' as theme;
 import 'package:intl/intl.dart';
 
 class CheckinAuditPage extends StatefulWidget {
@@ -59,17 +60,12 @@ class _CheckinAuditPageState extends State<CheckinAuditPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Check-ins'),
-        backgroundColor: Colors.white,
         elevation: 0,
-        foregroundColor: Colors.black,
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppColors.primary,
+          unselectedLabelColor: context.customGrey,
           tabs: const [
             Tab(text: 'Todos'),
             Tab(text: 'Por Staff'),
@@ -99,9 +95,8 @@ class _CheckinAuditPageState extends State<CheckinAuditPage>
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.customBorder, width: 1),
                 ),
-                filled: true,
-                fillColor: Colors.grey[50],
               ),
               onChanged: (value) {
                 setState(() {
